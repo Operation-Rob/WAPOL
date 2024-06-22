@@ -200,9 +200,8 @@ const updateResources = async (
     })
   );
 
-  console.log({newResources})
-  resources.current = newResources
-//   setResources(newResources);
+  console.log({ newResources });
+  resources.current = newResources;
 };
 
 const Map = () => {
@@ -212,7 +211,7 @@ const Map = () => {
   const [routes, setRoutes] = useState<Route[]>([]);
   const [time, setTime] = useState(0);
 
-  const resources = useRef<Resource[]>( resourcesJson);
+  const resources = useRef<Resource[]>(resourcesJson);
 
   const emergencies: Emergency[] = [
     {
@@ -315,21 +314,21 @@ const Map = () => {
       emergencies: formattedEmergencies,
     };
 
-    console.log({payload, time});
+    console.log({ payload, time });
 
-    // fetch("https://seeking-a-route.fly.dev/optimise/", {
-    //   body: JSON.stringify(payload),
-    //   method: "POST",
-    //   headers: {
-    //     "Content-Type": "application/json",
-    //   },
-    // })
-    //   .then((res) => {
-    //     console.log(res);
-    //   })
-    //   .catch((error) => {
-    //     console.error("Error:", error);
-    //   });
+    fetch("https://seeking-a-route.fly.dev/optimise/", {
+      body: JSON.stringify(payload),
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+    })
+      .then((res) => {
+        console.log(res);
+      })
+      .catch((error) => {
+        console.error("Error:", error);
+      });
 
     const res = {
       destinations: [
@@ -375,11 +374,9 @@ const Map = () => {
       value: 4991.0,
     };
 
-    updateResources(resources,  res.destinations);
+    updateResources(resources, res.destinations);
 
     console.log("Received optimization data:", resources);
-
-    // update resources
 
     emergencies.forEach((emergency) => {
       if (time === emergency.offset && map.current) {
@@ -401,7 +398,7 @@ const Map = () => {
     map.current && drawVehicle(map.current, vehicle);
   });
 
-  console.log('rendering')
+  console.log("rendering");
 
   return (
     <>
