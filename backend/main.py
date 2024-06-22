@@ -18,4 +18,4 @@ app.add_middleware(
 
 @app.get("/")
 def root():
-    return {"hello": "world"}
+    return {"hello": "world", "foo": "bar"}
