@@ -22,6 +22,16 @@ class OptimisationQuery(BaseModel):
     cars: list[Car]
     emergencies: list[Emergency]
 
+class Destination(BaseModel):
+    car_id: int
+    emergency_id: int
+    emergency_lat: float
+    emergency_lon: float
+
+class OptimisationResponse(BaseModel):
+    destinations: list[Destination]
+    value: float
+
 app = FastAPI()
 
 origins = ["*"]
@@ -59,27 +69,23 @@ def optimise(params: OptimisationQuery):
         priorities.append(emergency.priority)
         incident_requirements[i] = emergency.requirements
 
-
-    # num_vehicles = 3
-    # num_incidents = 3
-    D = [
-        [100.0, 20.0, 30.0],
-        [26.0, 25.0, 35.0],
-        [50.0, 30.0, 40.0],
-    ]
-    vehicle_types = np.array([
-        [1, 0, 0, 0, 0],
-        [0, 1, 0, 0, 0],
-        [0, 0, 1, 0, 0]
-    ])
-
-    incident_requirements = np.array([
-        [1, 0, 1, 0, 0],
-        [0, 0, 1, 0, 0],
-        [0, 1, 0, 0, 0]
-    ])
-
     priorities = ['Immediate', 'Urgent', 'Routine']
 
     result = run_optimisation(D, num_vehicles, num_incidents, priorities, vehicle_types, incident_requirements)
+
+    if result is not None:
+        destinations = []
+        for assignment in result['assignments']:
+            car_index = assignment[0]
+            emergency_index = assignment[1]
+
+            car_id = params.cars[car_index].id
+            emergency_id = params.emergencies[emergency_index].id
+            emergency_lat = params.emergencies[emergency_index].lat
+            emergency_lon = params.emergencies[emergency_index].lon
+
+            destinations.append(Destination(car_id=car_id, emergency_id=emergency_id, emergency_lat=emergency_lat, emergency_lon=emergency_lon))
+
+        return OptimisationResponse(destinations=destinations, value=result['value'])  
+
     return result
