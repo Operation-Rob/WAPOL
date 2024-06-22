@@ -56,11 +56,21 @@ const drawLine = (route: Route, map: mapboxgl.Map) => {
   }
 };
 
-// type VehicleState = {
-//   vehicleId: number;
-//   location: LatLong;
-//   destination: LatLong;
-// };
+type VehicleState = {
+  vehicleId: number;
+  location: LatLong;
+  type: Capability;
+  percent: number | null;
+  route: Route | null;
+};
+
+const capabilityToImage: Record<Capability, string> = {
+  [Capability.A]: "police_car",
+  [Capability.B]: "police_van",
+  [Capability.C]: "motorcycle",
+  [Capability.D]: "fire_truck",
+  [Capability.E]: "ambulance",
+};
 
 const getRoute = async (start: LatLong, end: LatLong): Promise<Route> => {
   const requestUrl = `https://api.mapbox.com/directions/v5/mapbox/driving/${start.long},${start.lat};${end.long},${end.lat}?steps=true&geometries=geojson&access_token=${MAPBOX_KEY}`;
@@ -85,6 +95,71 @@ const getRoute = async (start: LatLong, end: LatLong): Promise<Route> => {
   };
 };
 
+  const resources: Resource[] = jsonData;
+
+const emergencies: Emergency[] = [
+  {
+    capability: [Capability.A],
+    location: { latitude: -32, longitude: 115.9 },
+    emergencyId: 1,
+    emergencyLevel: EmergencyLevel.Immediate,
+    offset: 0,
+  },
+  {
+    capability: [Capability.C],
+    location: { latitude: -33, longitude: 115.9 },
+    emergencyId: 2,
+    emergencyLevel: EmergencyLevel.Urgent,
+    offset: 1500,
+  },
+  {
+    capability: [Capability.E],
+    location: { latitude: -31, longitude: 115.9 },
+    emergencyId: 3,
+    emergencyLevel: EmergencyLevel.NonUrgent,
+    offset: 3000,
+  },
+];
+
+const drawVehicle = (map: mapboxgl.Map, vehicle: VehicleState) => {
+  if (map.getSource(`src_vehicle_${vehicle.vehicleId.toString()}`)) {
+    // @ts-expect-error setdata cbf fixing
+    map.getSource(`src_vehicle_${vehicle.vehicleId.toString()}`).setData(
+      {
+        type: "Feature",
+        properties: {},
+        geometry: {
+          type: "Point",
+          coordinates: [vehicle.location.long, vehicle.location.lat],
+        },
+      },
+    );
+  } else {
+
+    map.addSource(`src_vehicle_${vehicle.vehicleId.toString()}`, {
+      type: "geojson",
+      data: {
+        properties: {},
+        type: "Feature",
+        geometry: {
+          type: "Point",
+          coordinates: [vehicle.location.long, vehicle.location.lat],
+        },
+      },
+    });
+
+    map.addLayer({
+      id: `layer_vehicle_${vehicle.vehicleId.toString()}`,
+      type: 'symbol',
+      source: `src_vehicle_${vehicle.vehicleId.toString()}`,
+      layout: {
+        'icon-image': capabilityToImage[vehicle.type],
+        'icon-size': 0.2
+      }
+    });
+  }
+}
+
 const Map = () => {
   mapboxgl.accessToken = MAPBOX_KEY;
   const mapContainer = useRef<HTMLDivElement>(null);
@@ -92,7 +167,7 @@ const Map = () => {
   const [routes, setRoutes] = useState<Route[]>([]);
   const [time, setTime] = useState(0);
 
-  // const [vehicleStates, setVehicleStates] = useState<VehicleState[]>([]);
+  const [vehicleStates, setVehicleStates] = useState<VehicleState[]>([]);
 
   const emergencies: Emergency[] = [
     {
@@ -125,12 +200,31 @@ const Map = () => {
 
   const initialiseMap = () => {
     if (map.current || !mapContainer.current) return; // initialize map only once
-    map.current = new mapboxgl.Map({
+
+    const currentMap = new mapboxgl.Map({
       container: mapContainer.current,
       style: "mapbox://styles/mapbox/streets-v12",
       center: [START_POSITION.long, START_POSITION.lat],
       zoom: 9,
     });
+
+
+    Object.entries(capabilityToImage).forEach(([capability, image]) => {
+      if (currentMap.hasImage(image)) {
+        return
+      }
+
+      currentMap.loadImage(`${image}.png`, (error, image_obj) => {
+        if (error) throw error;
+        if (!image_obj) {
+          return
+        }
+
+        currentMap.addImage(image, image_obj);
+      })
+    });
+
+    map.current = currentMap;
   };
 
   const setTimer = () => {
@@ -142,6 +236,20 @@ const Map = () => {
 
   useEffect(() => {
     initialiseMap();
+
+    fetch('capabilities.json').then((res) => res.json()).then((data) => {
+      data = data.map((vehicle: any) => {
+          return {
+            vehicleId: vehicle.id,
+            location: { lat: vehicle.latitude, long: vehicle.longitude },
+            type: vehicle.capability,
+          }
+        }
+      );
+      
+      setVehicleStates(data);
+    });
+
     const interval = setTimer();
     return () => clearInterval(interval);
   }, []);
@@ -205,6 +313,11 @@ const Map = () => {
   routes.forEach((route) => {
     map.current && drawLine(route, map.current);
   });
+
+  vehicleStates.forEach((vehicleState) => {
+    map.current && drawVehicle(map.current, vehicleState);
+  });
+
   return (
     <>
       <button
