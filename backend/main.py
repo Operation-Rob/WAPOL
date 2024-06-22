@@ -1,5 +1,5 @@
 from fastapi import FastAPI
-from fastapi.middleware.cors import CORSMiddleware
+from starlette.middleware.cors import CORSMiddleware
 from optimisation import run_optimisation
 import numpy as np
 from pydantic import BaseModel
