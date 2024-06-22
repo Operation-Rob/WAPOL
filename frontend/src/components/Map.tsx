@@ -2,7 +2,8 @@ import mapboxgl from "mapbox-gl";
 
 import "mapbox-gl/dist/mapbox-gl.css";
 import "./Map.css";
-import { Capability, EmergencyLevel, Emergency } from "../types/types.ts";
+import jsonData from '../data/capabilities.json';
+import { Capability, EmergencyLevel, Emergency, Resource } from "../types/types.ts";
 
 import { useRef, useEffect, useState } from "react";
 
@@ -59,6 +60,8 @@ const Map = () => {
   const map = useRef<mapboxgl.Map | null>(null);
 
   const [time, setTime] = useState(0);
+
+  const resources: Resource[] = jsonData;
 
   const emergencies: Emergency[] = [
     {

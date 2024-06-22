@@ -26,3 +26,11 @@ export enum Capability {
     offset: number;
   };
   
+
+export type Resource = {
+  id: number,
+  capability: number,
+  longitude: number,
+  latitude: number,
+}
+
