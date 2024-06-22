@@ -284,7 +284,7 @@ const Map = () => {
 
     console.log("Sending optimization data:", payload);
 
-    fetch("https://seeking-a-route.fly.dev/optimise", {
+    fetch("http://seeking-a-route.fly.dev/optimise", {
       body: JSON.stringify({
         cars: [
           {
