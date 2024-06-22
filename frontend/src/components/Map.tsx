@@ -316,7 +316,7 @@ const Map = () => {
 
     console.log({ payload, time });
 
-    fetch("http://0.0.0.0:8000/optimise", {
+    fetch("https://seeking-a-route.fly.dev/optimise/", {
       body: JSON.stringify(payload),
       method: "POST",
       headers: {
