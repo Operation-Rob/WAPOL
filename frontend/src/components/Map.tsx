@@ -178,14 +178,17 @@ const Map = () => {
     console.log("Sending optimization data:", payload);
 
     fetch("https://seeking-a-route.fly.dev/optimise/", {
-      body: JSON.stringify(payload),
-      method: "POST",
-      headers: {
-        "Access-Control-Allow-Origin": "http://locahost:5173",
-      },
-    }).then((res) => {
-      console.log(res);
-    });
+        mode: 'no-cors',
+        body: JSON.stringify(payload),
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+      }).then((res) => {
+        console.log(res);
+      }).catch((error) => {
+        console.error('Error:', error);
+      });
 
     emergencies.forEach((emergency) => {
       if (time === emergency.offset && map.current) {
