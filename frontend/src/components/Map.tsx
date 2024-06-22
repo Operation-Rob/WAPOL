@@ -1,30 +1,69 @@
 import mapboxgl from "mapbox-gl";
+
 import "mapbox-gl/dist/mapbox-gl.css";
 import "./Map.css";
-import {
-  Capability,
-  Location,
-  EmergencyLevel,
-  Emergency,
-} from "../types/types.ts";
+import { Capability, EmergencyLevel, Emergency } from "../types/types.ts";
 
-import React, { useRef, useEffect, useState } from "react";
+import { useRef, useEffect, useState } from "react";
+
+const MAPBOX_KEY = import.meta.env.VITE_MAPBOX_KEY;
+type LatLong = { lat: number; long: number };
+
+const START_POSITION = { lat: -31.9498342, long: 115.8578795 };
+const END_POSITION = { lat: -31.7387003, long: 115.7672242 };
+
+const getRoute = async (start: LatLong, end: LatLong, map: mapboxgl.Map) => {
+  const requestUrl = `https://api.mapbox.com/directions/v5/mapbox/driving/${start.long},${start.lat};${end.long},${end.lat}?steps=true&geometries=geojson&access_token=${MAPBOX_KEY}`;
+  const result = await fetch(requestUrl, {
+    method: "GET",
+  });
+  const json = await result.json();
+
+  const [route] = json.routes;
+
+  const geojson = {
+    type: "Feature",
+    properties: {},
+    geometry: route.geometry,
+  };
+
+  if (map.getSource("route")) {
+    // @ts-ignore
+    map.getSource("route").setData(geojson);
+  } else {
+    map.addLayer({
+      id: "route",
+      type: "line",
+      source: {
+        type: "geojson",
+        // @ts-ignore
+        data: geojson,
+      },
+
+      layout: {
+        "line-join": "round",
+        "line-cap": "round",
+      },
+      paint: {
+        "line-color": "#3887be",
+        "line-width": 5,
+        "line-opacity": 0.75,
+      },
+    });
+  }
+};
 
 const Map = () => {
   mapboxgl.accessToken = import.meta.env.VITE_MAPBOX_KEY as string;
+  const mapContainer = useRef<HTMLDivElement>(null);
+  const map = useRef<mapboxgl.Map | null>(null);
 
-  const mapContainer = useRef(null);
-  const map = useRef(null);
-  const [lng, setLng] = useState(115.823148);
-
-  const [lat, setLat] = useState(-31.940708);
-  const [zoom, setZoom] = useState(9);
   const [time, setTime] = useState(0);
 
   const emergencies: Emergency[] = [
     {
       capability: [Capability.A],
-      location: { latitude: -32, longitude: 115.9},
+      location: { latitude: -32, longitude: 115.9 },
       emergencyId: 1,
       emergencyLevel: EmergencyLevel.Immediate,
       offset: 0,
@@ -46,13 +85,12 @@ const Map = () => {
   ];
 
   const initialiseMap = () => {
-    if (map.current) return; // Initialize map only once
-
+    if (map.current || !mapContainer.current) return; // initialize map only once
     map.current = new mapboxgl.Map({
       container: mapContainer.current,
       style: "mapbox://styles/mapbox/streets-v12",
-      center: [lng, lat],
-      zoom: zoom,
+      center: [START_POSITION.long, START_POSITION.lat],
+      zoom: 9,
     });
   };
 
@@ -66,22 +104,14 @@ const Map = () => {
   useEffect(() => {
     initialiseMap();
     const interval = setTimer();
-    
-
-    // Timer to increment the time state
-
-    console.log(time);
-
     return () => clearInterval(interval);
   }, []);
 
   useEffect(() => {
     if (!map.current) return;
 
-    // Check if there are any emergencies whose offset matches the current time
     emergencies.forEach((emergency) => {
-      console.log(`Time: ${time}`);
-      if (time === emergency.offset) {
+      if (time === emergency.offset && map.current) {
         new mapboxgl.Marker()
           .setLngLat([
             emergency.location.longitude,
@@ -93,13 +123,20 @@ const Map = () => {
   }, [time, emergencies]);
 
   return (
-    <div>
+    <>
+      <button
+        onClick={() =>
+          map.current && getRoute(START_POSITION, END_POSITION, map.current)
+        }
+      >
+        Click me
+      </button>
       <div
         ref={mapContainer}
         className="map-container"
         style={{ width: "100%", height: "100%" }}
-      />
-    </div>
+      ></div>
+    </>
   );
 };
 
