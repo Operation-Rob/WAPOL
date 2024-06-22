@@ -1,7 +1,12 @@
-import "./App.css";
+
+import Map from "./components/Map";
 
 const App = () => {
-  return <h1>Hello world</h1>;
+  return (
+    <div style={{width: '100vw', height: '98vh'}}>
+      <Map />
+    </div>
+  );
 };
 
 export default App;

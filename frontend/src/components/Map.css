@@ -1,0 +1,8 @@
+.mapboxgl-canvas-container {
+    height: 100vh;
+}
+
+.mapbox-improve-map {
+    display: none;
+}
+
