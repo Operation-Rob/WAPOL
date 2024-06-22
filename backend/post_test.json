@@ -1,42 +1,64 @@
 {
     "cars": [
         {
-            "lat": 0.0,
-            "lon": 0.0,
+            "lat": -31.973403,
+            "lon": 115.847583,
             "capability": 0,
             "id": 0
         },
         {
-            "lat": 10.0,
-            "lon": 10.0,
+            "lat": -31.866206,
+            "lon": 115.828745,
             "capability": 1,
             "id": 1
         },
         {
-            "lat": 50.0,
-            "lon": 50.0,
+            "lat": -32.165991,
+            "lon": 115.816748,
             "capability": 2,
             "id": 2
+        },
+        {
+            "lat": -31.816838,
+            "lon": 115.760517,
+            "capability": 3,
+            "id": 3
+        },
+        {   
+            "lat":-32.126621,
+            "lon": 115.838945,
+            "capability": 4,
+            "id": 4
+        },
+        {
+            "lat": -31.937188,
+            "lon": 115.933290,
+            "capability": 3,
+            "id": 5
+        },
+        {
+            "lat": -31.946731,
+            "lon": 115.840521
         }
     ],
     "emergencies": [
         {
-            "lat": 0.0,
-            "lon": 0.0,
+            "lat": -32.111052,
+            "lon": 116.011444,
             "priority": "Immediate",
             "requirements": [1, 0, 1, 0, 0],
             "id": 0
         },
         {
-            "lat": 10.0,
-            "lon": 10.0,
+            "lat": -31.983119,
+            "lon": 115.781367,
             "priority": "Urgent",
             "requirements": [0, 0, 1, 0, 0],
             "id": 1
         },
         {
-            "lat": 50.0,
-            "lon": 50.0,
+            "lat": -31.914221,
+            "lon": 115.828848,
             "priority": "Routine",
             "requirements": [0, 1, 0, 0, 0],
             "id": 2
