@@ -12,10 +12,10 @@ export enum Capability {
   };
   
   export enum EmergencyLevel {
-    Immediate,
-    Urgent,
-    NonUrgent,
-    Routine,
+    "Immediate",
+    "Urgent",
+    "Non-Urgent",
+    "Routine",
   }
   
   export type Emergency = {
@@ -24,6 +24,7 @@ export enum Capability {
     emergencyId: number;
     emergencyLevel: EmergencyLevel;
     offset: number;
+    requirements: number[];
   };
   
 
@@ -33,4 +34,6 @@ export type Resource = {
   longitude: number,
   latitude: number,
 }
+
+
 

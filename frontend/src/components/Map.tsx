@@ -1,5 +1,5 @@
 import mapboxgl from "mapbox-gl";
-
+import axios from 'axios';
 import "mapbox-gl/dist/mapbox-gl.css";
 import "./Map.css";
 import jsonData from '../data/capabilities.json';
@@ -75,14 +75,13 @@ const getRoute = async (start: LatLong, end: LatLong): Promise<Route> => {
   };
 };
 
-  const resources: Resource[] = jsonData;
-
 const emergencies: Emergency[] = [
   {
     capability: [Capability.A],
     location: { latitude: -32, longitude: 115.9 },
     emergencyId: 1,
     emergencyLevel: EmergencyLevel.Immediate,
+    requirements: [1, 0, 0, 0, 0],
     offset: 0,
   },
   {
@@ -90,18 +89,25 @@ const emergencies: Emergency[] = [
     location: { latitude: -33, longitude: 115.9 },
     emergencyId: 2,
     emergencyLevel: EmergencyLevel.Urgent,
+    requirements: [0, 0, 1, 0, 0],
     offset: 1500,
   },
   {
     capability: [Capability.E],
     location: { latitude: -31, longitude: 115.9 },
     emergencyId: 3,
-    emergencyLevel: EmergencyLevel.NonUrgent,
+    requirements: [0, 0, 0, 0, 1],
+    emergencyLevel: EmergencyLevel["Non-Urgent"],
     offset: 3000,
   },
 ];
 
+
 const Map = () => {
+
+
+const [resources, setResources] = useState<Resource[]>(jsonData);
+
   mapboxgl.accessToken = MAPBOX_KEY;
   const mapContainer = useRef<HTMLDivElement>(null);
   const map = useRef<mapboxgl.Map | null>(null);
@@ -134,6 +140,42 @@ const Map = () => {
   useEffect(() => {
     if (!map.current) return;
 
+    const formattedResources = resources.map(resource => ({
+        lat: resource.latitude,
+        lon: resource.longitude,
+        capability: resource.capability,
+        id: resource.id,
+      }));
+  
+      const formattedEmergencies = emergencies.map(emergency => ({
+        lat: emergency.location.latitude,
+        lon: emergency.location.longitude,
+        priority: EmergencyLevel[emergency.emergencyLevel],
+        requirements: emergency.requirements,
+        id: emergency.emergencyId,
+      }));
+  
+      const payload = {
+        cars: formattedResources,
+        emergencies: formattedEmergencies,
+      };
+
+
+      console.log('Sending optimization data:', payload)
+
+    //   axios.post('https://seeking-a-route.fly.dev/optimise/', payload)
+    //     .then(response => {
+    //       console.log('Optimization response:', response.data);
+    //     })
+    //     .catch(error => {
+    //       console.error('Error sending optimization data:', error);
+    //     });
+
+
+
+
+
+
     emergencies.forEach((emergency) => {
       if (time === emergency.offset && map.current) {
         new mapboxgl.Marker()
@@ -143,6 +185,7 @@ const Map = () => {
           ])
           .addTo(map.current);
       }
+      
     });
   }, [time, emergencies]);
 
