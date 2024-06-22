@@ -1,4 +1,4 @@
-enum Capability {
+export enum Capability {
     A = 1,
     B = 2,
     C = 3,
@@ -6,22 +6,23 @@ enum Capability {
     E = 5,
   }
   
-  type Location = {
+  export type Location = {
     latitude: number;
     longitude: number;
   };
   
-  enum EmergencyLevel {
+  export enum EmergencyLevel {
     Immediate,
     Urgent,
     NonUrgent,
     Routine,
   }
   
-  type Emergency = {
-    capability: Capability;
+  export type Emergency = {
+    capability: Capability[];
     location: Location;
     emergencyId: number;
     emergencyLevel: EmergencyLevel;
+    offset: number;
   };
   
