@@ -19,3 +19,6 @@ with open('vehicles.json', 'w') as json_file:
 
 # Print the JSON data
 print(json_data)
+
+
+
