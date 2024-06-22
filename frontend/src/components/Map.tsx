@@ -110,7 +110,7 @@ const Map = () => {
       emergencyId: 2,
       emergencyLevel: EmergencyLevel.Urgent,
       requirements: [0, 0, 1, 0, 0],
-      offset: 1500,
+      offset: 15000,
     },
     {
       capability: [Capability.E],
@@ -118,7 +118,7 @@ const Map = () => {
       emergencyId: 3,
       requirements: [0, 0, 0, 0, 1],
       emergencyLevel: EmergencyLevel["Non-Urgent"],
-      offset: 3000,
+      offset: 6000,
     },
   ];
 
@@ -157,13 +157,19 @@ const Map = () => {
       id: resource.id,
     }));
 
-    const formattedEmergencies = emergencies.map((emergency) => ({
-      lat: emergency.location.latitude,
-      lon: emergency.location.longitude,
-      priority: EmergencyLevel[emergency.emergencyLevel],
-      requirements: emergency.requirements,
-      id: emergency.emergencyId,
-    }));
+    const formattedEmergencies = emergencies.map((emergency) => {
+    if (time < emergency.offset) {
+      return null;
+    }    
+    
+    return {
+        lat: emergency.location.latitude,
+        lon: emergency.location.longitude,
+        priority: EmergencyLevel[emergency.emergencyLevel],
+        requirements: emergency.requirements,
+        id: emergency.emergencyId,
+      };
+    }).filter(emergency => emergency !== null);
 
     const payload = {
       cars: formattedResources,
@@ -172,13 +178,13 @@ const Map = () => {
 
     console.log("Sending optimization data:", payload);
 
-      axios.post('https://seeking-a-route.fly.dev/optimise/', payload)
-        .then(response => {
-          console.log('Optimization response:', response.data);
-        })
-        .catch(error => {
-          console.error('Error sending optimization data:', error);
-        });
+    //   axios.post('https://seeking-a-route.fly.dev/optimise/', payload)
+    //     .then(response => {
+    //       console.log('Optimization response:', response.data);
+    //     })
+    //     .catch(error => {
+    //       console.error('Error sending optimization data:', error);
+    //     });
 
     emergencies.forEach((emergency) => {
       if (time === emergency.offset && map.current) {
