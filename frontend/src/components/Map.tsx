@@ -309,21 +309,6 @@ const Map = () => {
         };
       })
       .filter((emergency) => emergency !== null);
-    const formattedEmergencies = emergencies
-      .map((emergency) => {
-        if (time < emergency.offset) {
-          return null;
-        }
-
-        return {
-          lat: emergency.location.latitude,
-          lon: emergency.location.longitude,
-          priority: EmergencyLevel[emergency.emergencyLevel],
-          requirements: emergency.requirements,
-          id: emergency.emergencyId,
-        };
-      })
-      .filter((emergency) => emergency !== null);
 
     const payload = {
       cars: formattedResources,
