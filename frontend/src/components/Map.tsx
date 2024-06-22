@@ -2,8 +2,8 @@ import mapboxgl from "mapbox-gl";
 
 import "mapbox-gl/dist/mapbox-gl.css";
 import "./Map.css";
-import jsonData from '../data/capabilities.json';
-import { Capability, EmergencyLevel, Emergency, Resource } from "../types/types.ts";
+
+import { Capability, EmergencyLevel, Emergency } from "../types/types.ts";
 
 import { useRef, useEffect, useState } from "react";
 import { Geometry } from "./types.ts";
@@ -52,12 +52,11 @@ const drawLine = (route: Route, map: mapboxgl.Map) => {
   }
 };
 
-type VehicleState = {
-  vehicleId: number;
-  location: LatLong;
-  destination: LatLong;
-  
-};
+// type VehicleState = {
+//   vehicleId: number;
+//   location: LatLong;
+//   destination: LatLong;
+// };
 
 const getRoute = async (start: LatLong, end: LatLong): Promise<Route> => {
   const requestUrl = `https://api.mapbox.com/directions/v5/mapbox/driving/${start.long},${start.lat};${end.long},${end.lat}?steps=true&geometries=geojson&access_token=${MAPBOX_KEY}`;
@@ -82,31 +81,31 @@ const getRoute = async (start: LatLong, end: LatLong): Promise<Route> => {
   };
 };
 
-  const resources: Resource[] = jsonData;
+// const resources: Resource[] = jsonData;
 
-const emergencies: Emergency[] = [
-  {
-    capability: [Capability.A],
-    location: { latitude: -32, longitude: 115.9 },
-    emergencyId: 1,
-    emergencyLevel: EmergencyLevel.Immediate,
-    offset: 0,
-  },
-  {
-    capability: [Capability.C],
-    location: { latitude: -33, longitude: 115.9 },
-    emergencyId: 2,
-    emergencyLevel: EmergencyLevel.Urgent,
-    offset: 1500,
-  },
-  {
-    capability: [Capability.E],
-    location: { latitude: -31, longitude: 115.9 },
-    emergencyId: 3,
-    emergencyLevel: EmergencyLevel.NonUrgent,
-    offset: 3000,
-  },
-];
+// const emergencies: Emergency[] = [
+//   {
+//     capability: [Capability.A],
+//     location: { latitude: -32, longitude: 115.9 },
+//     emergencyId: 1,
+//     emergencyLevel: EmergencyLevel.Immediate,
+//     offset: 0,
+//   },
+//   {
+//     capability: [Capability.C],
+//     location: { latitude: -33, longitude: 115.9 },
+//     emergencyId: 2,
+//     emergencyLevel: EmergencyLevel.Urgent,
+//     offset: 1500,
+//   },
+//   {
+//     capability: [Capability.E],
+//     location: { latitude: -31, longitude: 115.9 },
+//     emergencyId: 3,
+//     emergencyLevel: EmergencyLevel.NonUrgent,
+//     offset: 3000,
+//   },
+// ];
 
 const Map = () => {
   mapboxgl.accessToken = MAPBOX_KEY;
@@ -115,10 +114,8 @@ const Map = () => {
   const [routes, setRoutes] = useState<Route[]>([]);
   const [time, setTime] = useState(0);
 
-  const [vehicleStates, setVehicleStates] = useState<VehicleState[]>([]);
+  // const [vehicleStates, setVehicleStates] = useState<VehicleState[]>([]);
 
-
-  
   const emergencies: Emergency[] = [
     {
       capability: [Capability.A],
@@ -168,8 +165,6 @@ const Map = () => {
 
   useEffect(() => {
     if (!map.current) return;
-
-
 
     emergencies.forEach((emergency) => {
       if (time === emergency.offset && map.current) {
