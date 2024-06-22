@@ -1,5 +1,4 @@
 import mapboxgl from "mapbox-gl";
-import axios from "axios";
 import "mapbox-gl/dist/mapbox-gl.css";
 import "./Map.css";
 
@@ -172,14 +171,15 @@ const Map = () => {
 
     console.log("Sending optimization data:", payload);
 
-    axios
-      .post("https://seeking-a-route.fly.dev/optimise/", payload)
-      .then((response) => {
-        console.log("Optimization response:", response.data);
-      })
-      .catch((error) => {
-        console.error("Error sending optimization data:", error);
-      });
+    fetch("https://seeking-a-route.fly.dev/optimise/", {
+      body: JSON.stringify(payload),
+      method: "POST",
+      headers: {
+        "Access-Control-Allow-Origin": "http://locahost:5173",
+      },
+    }).then((res) => {
+      console.log(res);
+    });
 
     emergencies.forEach((emergency) => {
       if (time === emergency.offset && map.current) {
