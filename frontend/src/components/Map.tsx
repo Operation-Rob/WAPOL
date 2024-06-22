@@ -60,18 +60,17 @@ type VehicleState = {
   vehicleId: number;
   location: LatLong;
   type: Capability;
+  percent: number | null;
   route: Route | null;
 };
 
 const capabilityToImage: Record<Capability, string> = {
   [Capability.A]: "police_car",
-  [Capability.B]: "b",
-  [Capability.C]: "c",
-  [Capability.D]: "d",
-  [Capability.E]: "e",
+  [Capability.B]: "police_van",
+  [Capability.C]: "motorcycle",
+  [Capability.D]: "fire_truck",
+  [Capability.E]: "ambulance",
 };
-
-
 
 const getRoute = async (start: LatLong, end: LatLong): Promise<Route> => {
   const requestUrl = `https://api.mapbox.com/directions/v5/mapbox/driving/${start.long},${start.lat};${end.long},${end.lat}?steps=true&geometries=geojson&access_token=${MAPBOX_KEY}`;
@@ -155,11 +154,9 @@ const drawVehicle = (map: mapboxgl.Map, vehicle: VehicleState) => {
       source: `src_vehicle_${vehicle.vehicleId.toString()}`,
       layout: {
         'icon-image': capabilityToImage[vehicle.type],
-        'icon-size': 1.0
+        'icon-size': 0.2
       }
     });
-    
-    
   }
 }
 
@@ -170,15 +167,8 @@ const Map = () => {
   const [routes, setRoutes] = useState<Route[]>([]);
   const [time, setTime] = useState(0);
 
-  const [vehicleStates, setVehicleStates] = useState<VehicleState[]>([
-    {
-      vehicleId: 1,
-      location: { lat: -32, long: 117.9 },
-      type: Capability.A,
-      route: null,
-    },
-  ]);
-  
+  const [vehicleStates, setVehicleStates] = useState<VehicleState[]>([]);
+
   const emergencies: Emergency[] = [
     {
       capability: [Capability.A],
@@ -224,8 +214,6 @@ const Map = () => {
         return
       }
 
-      console.log(`Loading image: ${image}.png`)
-
       currentMap.loadImage(`${image}.png`, (error, image_obj) => {
         if (error) throw error;
         if (!image_obj) {
@@ -248,6 +236,20 @@ const Map = () => {
 
   useEffect(() => {
     initialiseMap();
+
+    fetch('capabilities.json').then((res) => res.json()).then((data) => {
+      data = data.map((vehicle: any) => {
+          return {
+            vehicleId: vehicle.id,
+            location: { lat: vehicle.latitude, long: vehicle.longitude },
+            type: vehicle.capability,
+          }
+        }
+      );
+      
+      setVehicleStates(data);
+    });
+
     const interval = setTimer();
     return () => clearInterval(interval);
   }, []);
