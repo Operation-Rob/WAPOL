@@ -127,8 +127,8 @@ def optimise(params: OptimisationQuery):
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173", "https://operation-rob.github.io/WAPOL/"],
+    allow_origins=["*"],
     allow_credentials=True,
-    allow_methods=["POST", "GET"],
+    allow_methods=["*"],
     allow_headers=["*"],
 )
