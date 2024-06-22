@@ -53,6 +53,13 @@ const getRoute = async (start: LatLong, end: LatLong, map: mapboxgl.Map) => {
   }
 };
 
+type VehicleState = {
+  vehicleId: number;
+  location: LatLong;
+  destination: LatLong;
+  
+};
+
 const Map = () => {
   mapboxgl.accessToken = import.meta.env.VITE_MAPBOX_KEY as string;
   const mapContainer = useRef<HTMLDivElement>(null);
@@ -60,6 +67,10 @@ const Map = () => {
 
   const [time, setTime] = useState(0);
 
+  const [vehicleStates, setVehicleStates] = useState<VehicleState[]>([]);
+
+
+  
   const emergencies: Emergency[] = [
     {
       capability: [Capability.A],
@@ -109,6 +120,8 @@ const Map = () => {
 
   useEffect(() => {
     if (!map.current) return;
+
+
 
     emergencies.forEach((emergency) => {
       if (time === emergency.offset && map.current) {
