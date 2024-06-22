@@ -1,5 +1,4 @@
 import mapboxgl from "mapbox-gl";
-import axios from "axios";
 import "mapbox-gl/dist/mapbox-gl.css";
 import "./Map.css";
 
@@ -110,7 +109,7 @@ const Map = () => {
       emergencyId: 2,
       emergencyLevel: EmergencyLevel.Urgent,
       requirements: [0, 0, 1, 0, 0],
-      offset: 1500,
+      offset: 15000,
     },
     {
       capability: [Capability.E],
@@ -118,7 +117,7 @@ const Map = () => {
       emergencyId: 3,
       requirements: [0, 0, 0, 0, 1],
       emergencyLevel: EmergencyLevel["Non-Urgent"],
-      offset: 3000,
+      offset: 6000,
     },
   ];
 
@@ -157,13 +156,19 @@ const Map = () => {
       id: resource.id,
     }));
 
-    const formattedEmergencies = emergencies.map((emergency) => ({
-      lat: emergency.location.latitude,
-      lon: emergency.location.longitude,
-      priority: EmergencyLevel[emergency.emergencyLevel],
-      requirements: emergency.requirements,
-      id: emergency.emergencyId,
-    }));
+    const formattedEmergencies = emergencies.map((emergency) => {
+    if (time < emergency.offset) {
+      return null;
+    }    
+    
+    return {
+        lat: emergency.location.latitude,
+        lon: emergency.location.longitude,
+        priority: EmergencyLevel[emergency.emergencyLevel],
+        requirements: emergency.requirements,
+        id: emergency.emergencyId,
+      };
+    }).filter(emergency => emergency !== null);
 
     const payload = {
       cars: formattedResources,
@@ -172,14 +177,15 @@ const Map = () => {
 
     console.log("Sending optimization data:", payload);
 
-    axios
-      .post("https://seeking-a-route.fly.dev/optimise/", payload)
-      .then((response) => {
-        console.log("Optimization response:", response.data);
-      })
-      .catch((error) => {
-        console.error("Error sending optimization data:", error);
-      });
+    fetch("https://seeking-a-route.fly.dev/optimise/", {
+      body: JSON.stringify(payload),
+      method: "POST",
+      headers: {
+        "Access-Control-Allow-Origin": "http://locahost:5173",
+      },
+    }).then((res) => {
+      console.log(res);
+    });
 
     emergencies.forEach((emergency) => {
       if (time === emergency.offset && map.current) {
