@@ -24,42 +24,33 @@ const getRoute = async (start: LatLong, end: LatLong, map: mapboxgl.Map) => {
   const geojson = {
     type: "Feature",
     properties: {},
-    geometry: {
-      type: "LineString",
-      coordinates: route,
-    },
+    geometry: route.geometry,
   };
-  const id = `${Math.random()}`;
 
-  map.addSource(id, {
-    type: "geojson",
-    data: {
-      type: "Feature",
-      properties: {},
-      geometry: {
-        type: "LineString",
-        coordinates: route,
+  if (map.getSource("route")) {
+    // @ts-ignore
+    map.getSource("route").setData(geojson);
+  } else {
+    map.addLayer({
+      id: "route",
+      type: "line",
+      source: {
+        type: "geojson",
+        // @ts-ignore
+        data: geojson,
       },
-    },
-  });
 
-  const layer = {
-    id: `route-${Math.random()}`,
-    type: "line",
-    source: id,
-
-    layout: {
-      "line-join": "round",
-      "line-cap": "round",
-    },
-    paint: {
-      "line-color": "#3887be",
-      "line-width": 5,
-      "line-opacity": 0.75,
-    },
-  };
-
-  map.addLayer(layer);
+      layout: {
+        "line-join": "round",
+        "line-cap": "round",
+      },
+      paint: {
+        "line-color": "#3887be",
+        "line-width": 5,
+        "line-opacity": 0.75,
+      },
+    });
+  }
 };
 
 const Map = () => {
