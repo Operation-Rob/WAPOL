@@ -284,10 +284,17 @@ const Map = () => {
 
     console.log("Sending optimization data:", payload);
 
-    fetch("https://seak-a-route/optimise/", {
+    fetch("https://seeking-a-route.fly.dev/optimise", {
       body: JSON.stringify({
-        cars: [],
-        emergencies: [],
+        cars: [
+          {
+            lat: 31.0,
+            lon: -151.75,
+            capability: 1,
+            id: 1,
+          },
+        ],
+        emergencies: formattedEmergencies,
       }),
       method: "POST",
       headers: {

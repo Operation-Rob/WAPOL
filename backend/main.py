@@ -43,14 +43,6 @@ class OptimisationResponse(BaseModel):
 
 app = FastAPI()
 
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
-
 
 @app.get("/")
 def root():
@@ -131,3 +123,12 @@ def optimise(params: OptimisationQuery):
         return OptimisationResponse(destinations=destinations, value=result["value"])
 
     return result
+
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["http://localhost:5173", "https://operation-rob.github.io/WAPOL/"],
+    allow_credentials=True,
+    allow_methods=["POST", "GET"],
+    allow_headers=["*"],
+)
