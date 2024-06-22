@@ -95,7 +95,7 @@ const getRoute = async (start: LatLong, end: LatLong): Promise<Route> => {
   };
 };
 
-  const resources: Resource[] = jsonData;
+const resources: Resource[] = jsonData;
 
 const emergencies: Emergency[] = [
   {
@@ -124,18 +124,15 @@ const emergencies: Emergency[] = [
 const drawVehicle = (map: mapboxgl.Map, vehicle: VehicleState) => {
   if (map.getSource(`src_vehicle_${vehicle.vehicleId.toString()}`)) {
     // @ts-expect-error setdata cbf fixing
-    map.getSource(`src_vehicle_${vehicle.vehicleId.toString()}`).setData(
-      {
-        type: "Feature",
-        properties: {},
-        geometry: {
-          type: "Point",
-          coordinates: [vehicle.location.long, vehicle.location.lat],
-        },
+    map.getSource(`src_vehicle_${vehicle.vehicleId.toString()}`).setData({
+      type: "Feature",
+      properties: {},
+      geometry: {
+        type: "Point",
+        coordinates: [vehicle.location.long, vehicle.location.lat],
       },
-    );
+    });
   } else {
-
     map.addSource(`src_vehicle_${vehicle.vehicleId.toString()}`, {
       type: "geojson",
       data: {
@@ -150,15 +147,15 @@ const drawVehicle = (map: mapboxgl.Map, vehicle: VehicleState) => {
 
     map.addLayer({
       id: `layer_vehicle_${vehicle.vehicleId.toString()}`,
-      type: 'symbol',
+      type: "symbol",
       source: `src_vehicle_${vehicle.vehicleId.toString()}`,
       layout: {
-        'icon-image': capabilityToImage[vehicle.type],
-        'icon-size': 0.2
-      }
+        "icon-image": capabilityToImage[vehicle.type],
+        "icon-size": 0.2,
+      },
     });
   }
-}
+};
 
 const Map = () => {
   mapboxgl.accessToken = MAPBOX_KEY;
@@ -208,20 +205,19 @@ const Map = () => {
       zoom: 9,
     });
 
-
     Object.entries(capabilityToImage).forEach(([capability, image]) => {
       if (currentMap.hasImage(image)) {
-        return
+        return;
       }
 
       currentMap.loadImage(`${image}.png`, (error, image_obj) => {
         if (error) throw error;
         if (!image_obj) {
-          return
+          return;
         }
 
         currentMap.addImage(image, image_obj);
-      })
+      });
     });
 
     map.current = currentMap;
@@ -237,18 +233,19 @@ const Map = () => {
   useEffect(() => {
     initialiseMap();
 
-    fetch('capabilities.json').then((res) => res.json()).then((data) => {
-      data = data.map((vehicle: any) => {
+    fetch("capabilities.json")
+      .then((res) => res.json())
+      .then((data) => {
+        data = data.map((vehicle: any) => {
           return {
             vehicleId: vehicle.id,
             location: { lat: vehicle.latitude, long: vehicle.longitude },
             type: vehicle.capability,
-          }
-        }
-      );
-      
-      setVehicleStates(data);
-    });
+          };
+        });
+
+        setVehicleStates(data);
+      });
 
     const interval = setTimer();
     return () => clearInterval(interval);
@@ -264,19 +261,21 @@ const Map = () => {
       id: resource.id,
     }));
 
-    const formattedEmergencies = emergencies.map((emergency) => {
-    if (time < emergency.offset) {
-      return null;
-    }    
-    
-    return {
-        lat: emergency.location.latitude,
-        lon: emergency.location.longitude,
-        priority: EmergencyLevel[emergency.emergencyLevel],
-        requirements: emergency.requirements,
-        id: emergency.emergencyId,
-      };
-    }).filter(emergency => emergency !== null);
+    const formattedEmergencies = emergencies
+      .map((emergency) => {
+        if (time < emergency.offset) {
+          return null;
+        }
+
+        return {
+          lat: emergency.location.latitude,
+          lon: emergency.location.longitude,
+          priority: EmergencyLevel[emergency.emergencyLevel],
+          requirements: emergency.requirements,
+          id: emergency.emergencyId,
+        };
+      })
+      .filter((emergency) => emergency !== null);
 
     const payload = {
       cars: formattedResources,
@@ -285,18 +284,18 @@ const Map = () => {
 
     console.log("Sending optimization data:", payload);
 
-    fetch("https://seeking-a-route.fly.dev/optimise/", {
-        mode: 'no-cors',
-        body: JSON.stringify(payload),
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json"
-        },
-      }).then((res) => {
-        console.log(res);
-      }).catch((error) => {
-        console.error('Error:', error);
-      });
+    fetch("https://seak-a-route/optimise/", {
+      body: JSON.stringify({
+        cars: [],
+        emergencies: [],
+      }),
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+    }).then((res) => {
+      console.log(res);
+    });
 
     emergencies.forEach((emergency) => {
       if (time === emergency.offset && map.current) {
