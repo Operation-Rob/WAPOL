@@ -95,31 +95,31 @@ const getRoute = async (start: LatLong, end: LatLong): Promise<Route> => {
   };
 };
 
-const resources: Resource[] = jsonData;
+// const resources: Resource[] = jsonData;
 
-const emergencies: Emergency[] = [
-  {
-    capability: [Capability.A],
-    location: { latitude: -32, longitude: 115.9 },
-    emergencyId: 1,
-    emergencyLevel: EmergencyLevel.Immediate,
-    offset: 0,
-  },
-  {
-    capability: [Capability.C],
-    location: { latitude: -33, longitude: 115.9 },
-    emergencyId: 2,
-    emergencyLevel: EmergencyLevel.Urgent,
-    offset: 1500,
-  },
-  {
-    capability: [Capability.E],
-    location: { latitude: -31, longitude: 115.9 },
-    emergencyId: 3,
-    emergencyLevel: EmergencyLevel.NonUrgent,
-    offset: 3000,
-  },
-];
+// const emergencies: Emergency[] = [
+//   {
+//     capability: [Capability.A],
+//     location: { latitude: -32, longitude: 115.9 },
+//     emergencyId: 1,
+//     emergencyLevel: EmergencyLevel.Immediate,
+//     offset: 0,
+//   },
+//   {
+//     capability: [Capability.C],
+//     location: { latitude: -33, longitude: 115.9 },
+//     emergencyId: 2,
+//     emergencyLevel: EmergencyLevel.Urgent,
+//     offset: 1500,
+//   },
+//   {
+//     capability: [Capability.E],
+//     location: { latitude: -31, longitude: 115.9 },
+//     emergencyId: 3,
+//     emergencyLevel: EmergencyLevel.NonUrgent,
+//     offset: 3000,
+//   },
+// ];
 
 const drawVehicle = (map: mapboxgl.Map, vehicle: VehicleState) => {
   if (map.getSource(`src_vehicle_${vehicle.vehicleId.toString()}`)) {
@@ -205,7 +205,7 @@ const Map = () => {
       zoom: 9,
     });
 
-    Object.entries(capabilityToImage).forEach(([capability, image]) => {
+    Object.entries(capabilityToImage).forEach(([_, image]) => {
       if (currentMap.hasImage(image)) {
         return;
       }
