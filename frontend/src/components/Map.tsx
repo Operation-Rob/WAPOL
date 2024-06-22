@@ -5,13 +5,13 @@ import "./Map.css";
 import {
   Capability,
   EmergencyLevel,
-  RouteInterface,
+  // RouteInterface,
   Emergency,
   Resource,
   LatLong,
   Route,
-  GeoJSON,
-  Geometry,
+  // GeoJSON,
+  // Geometry,
   JsonDataItem,
   Destination,
 } from "../types/types.ts";
@@ -95,32 +95,32 @@ const processJsonData = (jsonData: JsonDataItem[]): Resource[] => {
 
 const resourcesJson: Resource[] = processJsonData(jsonData);
 
-const emergencies: Emergency[] = [
-  {
-    capability: [Capability.A],
-    location: { latitude: -32, longitude: 115.9 },
-    emergencyId: 1,
-    emergencyLevel: EmergencyLevel.Immediate,
-    requirements: [1, 0, 0, 0, 0],
-    offset: 0,
-  },
-  {
-    capability: [Capability.C],
-    location: { latitude: -33, longitude: 115.9 },
-    emergencyId: 2,
-    emergencyLevel: EmergencyLevel.Urgent,
-    requirements: [0, 0, 1, 0, 0],
-    offset: 1500,
-  },
-  {
-    capability: [Capability.E],
-    location: { latitude: -31, longitude: 115.9 },
-    emergencyId: 3,
-    requirements: [0, 0, 0, 0, 1],
-    emergencyLevel: EmergencyLevel["Non-Urgent"],
-    offset: 3000,
-  },
-];
+// const emergencies: Emergency[] = [
+//   {
+//     capability: [Capability.A],
+//     location: { latitude: -32, longitude: 115.9 },
+//     emergencyId: 1,
+//     emergencyLevel: EmergencyLevel.Immediate,
+//     requirements: [1, 0, 0, 0, 0],
+//     offset: 0,
+//   },
+//   {
+//     capability: [Capability.C],
+//     location: { latitude: -33, longitude: 115.9 },
+//     emergencyId: 2,
+//     emergencyLevel: EmergencyLevel.Urgent,
+//     requirements: [0, 0, 1, 0, 0],
+//     offset: 1500,
+//   },
+//   {
+//     capability: [Capability.E],
+//     location: { latitude: -31, longitude: 115.9 },
+//     emergencyId: 3,
+//     requirements: [0, 0, 0, 0, 1],
+//     emergencyLevel: EmergencyLevel["Non-Urgent"],
+//     offset: 3000,
+//   },
+// ];
 
 const drawVehicle = (map: mapboxgl.Map, vehicle: Resource) => {
   if (map.getSource(`src_vehicle_${vehicle.id.toString()}`)) {
@@ -250,7 +250,7 @@ const Map = () => {
       zoom: 9,
     });
 
-    Object.entries(capabilityToImage).forEach(([capability, image]) => {
+    Object.entries(capabilityToImage).forEach(([_, image]) => {
       if (currentMap.hasImage(image)) {
         return;
       }
@@ -316,7 +316,7 @@ const Map = () => {
 
     console.log({ payload, time });
 
-    fetch("https://seeking-a-route.fly.dev/optimise/", {
+    fetch("http://0.0.0.0:8000/optimise", {
       body: JSON.stringify(payload),
       method: "POST",
       headers: {
@@ -324,6 +324,7 @@ const Map = () => {
       },
     })
       .then((res) => {
+        console.log('yippee')
         console.log(res);
       })
       .catch((error) => {
