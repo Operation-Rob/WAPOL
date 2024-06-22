@@ -122,7 +122,7 @@ const Map = () => {
     },
   ];
 
-  const [resources, setResources] = useState<Resource[]>(jsonData);
+  const [resources, _] = useState<Resource[]>(jsonData);
 
   const initialiseMap = () => {
     if (map.current || !mapContainer.current) return; // initialize map only once
@@ -172,13 +172,14 @@ const Map = () => {
 
     console.log("Sending optimization data:", payload);
 
-      axios.post('https://seeking-a-route.fly.dev/optimise/', payload)
-        .then(response => {
-          console.log('Optimization response:', response.data);
-        })
-        .catch(error => {
-          console.error('Error sending optimization data:', error);
-        });
+    axios
+      .post("https://seeking-a-route.fly.dev/optimise/", payload)
+      .then((response) => {
+        console.log("Optimization response:", response.data);
+      })
+      .catch((error) => {
+        console.error("Error sending optimization data:", error);
+      });
 
     emergencies.forEach((emergency) => {
       if (time === emergency.offset && map.current) {
