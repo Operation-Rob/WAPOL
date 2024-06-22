@@ -1,10 +1,14 @@
 import mapboxgl from "mapbox-gl";
-
 import "mapbox-gl/dist/mapbox-gl.css";
 import "./Map.css";
-import jsonData from '../data/capabilities.json';
-import { Capability, EmergencyLevel, Emergency, Resource } from "../types/types.ts";
 
+import {
+  Capability,
+  EmergencyLevel,
+  Emergency,
+  Resource,
+} from "../types/types.ts";
+import jsonData from "../data/capabilities.json";
 import { useRef, useEffect, useState } from "react";
 import { Geometry } from "./types.ts";
 
@@ -181,6 +185,7 @@ const Map = () => {
       location: { latitude: -32, longitude: 115.9 },
       emergencyId: 1,
       emergencyLevel: EmergencyLevel.Immediate,
+      requirements: [1, 0, 0, 0, 0],
       offset: 0,
     },
     {
@@ -188,16 +193,20 @@ const Map = () => {
       location: { latitude: -33, longitude: 115.9 },
       emergencyId: 2,
       emergencyLevel: EmergencyLevel.Urgent,
-      offset: 1500,
+      requirements: [0, 0, 1, 0, 0],
+      offset: 15000,
     },
     {
       capability: [Capability.E],
       location: { latitude: -31, longitude: 115.9 },
       emergencyId: 3,
-      emergencyLevel: EmergencyLevel.NonUrgent,
-      offset: 3000,
+      requirements: [0, 0, 0, 0, 1],
+      emergencyLevel: EmergencyLevel["Non-Urgent"],
+      offset: 6000,
     },
   ];
+
+  const [resources, _] = useState<Resource[]>(jsonData);
 
   const initialiseMap = () => {
     if (map.current || !mapContainer.current) return; // initialize map only once
@@ -232,8 +241,8 @@ const Map = () => {
 
   const setTimer = () => {
     const interval = setInterval(() => {
-      setTime((prevTime) => prevTime + 500); // Increment time every 500ms
-    }, 500);
+      setTime((prevTime) => prevTime + 3000); // Increment time every 500ms
+    }, 3000);
     return interval;
   };
 
@@ -245,6 +254,44 @@ const Map = () => {
 
   useEffect(() => {
     if (!map.current) return;
+
+    const formattedResources = resources.map((resource) => ({
+      lat: resource.latitude,
+      lon: resource.longitude,
+      capability: resource.capability,
+      id: resource.id,
+    }));
+
+    const formattedEmergencies = emergencies.map((emergency) => {
+    if (time < emergency.offset) {
+      return null;
+    }    
+    
+    return {
+        lat: emergency.location.latitude,
+        lon: emergency.location.longitude,
+        priority: EmergencyLevel[emergency.emergencyLevel],
+        requirements: emergency.requirements,
+        id: emergency.emergencyId,
+      };
+    }).filter(emergency => emergency !== null);
+
+    const payload = {
+      cars: formattedResources,
+      emergencies: formattedEmergencies,
+    };
+
+    console.log("Sending optimization data:", payload);
+
+    fetch("https://seeking-a-route.fly.dev/optimise/", {
+      body: JSON.stringify(payload),
+      method: "POST",
+      headers: {
+        "Access-Control-Allow-Origin": "http://locahost:5173",
+      },
+    }).then((res) => {
+      console.log(res);
+    });
 
     emergencies.forEach((emergency) => {
       if (time === emergency.offset && map.current) {
@@ -287,5 +334,4 @@ const Map = () => {
     </>
   );
 };
-
 export default Map;
