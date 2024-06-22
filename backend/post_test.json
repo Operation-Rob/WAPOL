@@ -1,0 +1,45 @@
+{
+    "cars": [
+        {
+            "lat": 0.0,
+            "lon": 0.0,
+            "capability": 0,
+            "id": 0
+        },
+        {
+            "lat": 10.0,
+            "lon": 10.0,
+            "capability": 1,
+            "id": 1
+        },
+        {
+            "lat": 50.0,
+            "lon": 50.0,
+            "capability": 2,
+            "id": 2
+        }
+    ],
+    "emergencies": [
+        {
+            "lat": 0.0,
+            "lon": 0.0,
+            "priority": "Immediate",
+            "requirements": [1, 0, 1, 0, 0],
+            "id": 0
+        },
+        {
+            "lat": 10.0,
+            "lon": 10.0,
+            "priority": "Urgent",
+            "requirements": [0, 0, 1, 0, 0],
+            "id": 1
+        },
+        {
+            "lat": 50.0,
+            "lon": 50.0,
+            "priority": "Routine",
+            "requirements": [0, 1, 0, 0, 0],
+            "id": 2
+        }
+    ]
+}
