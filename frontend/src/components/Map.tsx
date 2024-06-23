@@ -332,53 +332,103 @@ const capabilityMap: Record<number, string> = {
   4: "Ambulance",
 };
 
-  const drawVehicle = (map: mapboxgl.Map, vehicle: Resource) => {
-    if (map.getSource(`src_vehicle_${vehicle.id.toString()}`)) {
-      // @ts-expect-error we suck
-      map.getSource(`src_vehicle_${vehicle.id.toString()}`).setData({
+const drawVehicle = (map: mapboxgl.Map, vehicle: Resource, resources: React.MutableRefObject<Resource[]>) => {
+  if (map.getSource(`src_vehicle_${vehicle.id.toString()}`)) {
+    // @ts-expect-error we suck
+    map.getSource(`src_vehicle_${vehicle.id.toString()}`).setData({
+      type: "Feature",
+      properties: {},
+      geometry: {
+        type: "Point",
+        coordinates: [vehicle.origin_lon, vehicle.origin_lat],
+      },
+    });
+  } else {
+    // Create a new source for the vehicle
+    map.addSource(`src_vehicle_${vehicle.id.toString()}`, {
+      type: "geojson",
+      data: {
         type: "Feature",
         properties: {},
         geometry: {
           type: "Point",
           coordinates: [vehicle.origin_lon, vehicle.origin_lat],
         },
+      },
+    });
+
+    // Add a layer for the vehicle with dynamic scaling
+    map.addLayer({
+      id: `layer_vehicle_${vehicle.id.toString()}`,
+      type: "symbol",
+      source: `src_vehicle_${vehicle.id.toString()}`,
+      layout: {
+        "icon-image": capabilityToImage[vehicle.capability],
+        "icon-size": [
+          "interpolate",
+          ["linear"],
+          ["zoom"],
+          5,
+          0.06, // At zoom level 5, icon size is 0.06
+          15,
+          0.12, // At zoom level 15, icon size is 0.12
+        ],
+        "icon-allow-overlap": true,
+        "icon-ignore-placement": true,
+      },
+    });
+
+    // Add event listeners for dragging
+    let isDragging = false;
+    let draggedVehicleId: number | null = null;
+
+    map.on("mousedown", `layer_vehicle_${vehicle.id.toString()}`, (e) => {
+      isDragging = true;
+      draggedVehicleId = vehicle.id;
+      map.getCanvas().style.cursor = "grabbing";
+      map.dragPan.disable(); // Disable map panning while dragging a vehicle
+    });
+
+    map.on("mousemove", (e) => {
+      if (!isDragging || draggedVehicleId === null) return;
+
+      const newLngLat = e.lngLat;
+      const updatedResources = resources.current.map((resource) => {
+        if (resource.id === draggedVehicleId) {
+          return {
+            ...resource,
+            origin_lon: newLngLat.lng,
+            origin_lat: newLngLat.lat,
+          };
+        }
+        return resource;
       });
-    } else {
-      // Create a new source for the vehicle
-      map.addSource(`src_vehicle_${vehicle.id.toString()}`, {
-        type: "geojson",
-        data: {
-          type: "Feature",
-          properties: {},
-          geometry: {
-            type: "Point",
-            coordinates: [vehicle.origin_lon, vehicle.origin_lat],
-          },
+
+      resources.current = updatedResources;
+
+      // Update the vehicle's position
+      map.getSource(`src_vehicle_${draggedVehicleId.toString()}`).setData({
+        type: "Feature",
+        properties: {},
+        geometry: {
+          type: "Point",
+          coordinates: [newLngLat.lng, newLngLat.lat],
         },
       });
-  
-      // Add a layer for the vehicle with dynamic scaling
-      map.addLayer({
-        id: `layer_vehicle_${vehicle.id.toString()}`,
-        type: "symbol",
-        source: `src_vehicle_${vehicle.id.toString()}`,
-        layout: {
-          "icon-image": capabilityToImage[vehicle.capability],
-          "icon-size": [
-            "interpolate",
-            ["linear"],
-            ["zoom"],
-            5,
-            0.06, // At zoom level 5, icon size is 0.06
-            15,
-            0.12, // At zoom level 15, icon size is 0.12
-          ],
-          "icon-allow-overlap": true,
-          "icon-ignore-placement": true,
-        },
-      });
-    }
-  };
+    });
+
+    map.on("mouseup", () => {
+      isDragging = false;
+      draggedVehicleId = null;
+      map.getCanvas().style.cursor = "";
+      map.dragPan.enable(); // Re-enable map panning after dragging is finished
+    });
+  }
+};
+
+
+
+
 const updateResources = async (
   resources: React.MutableRefObject<Resource[]>,
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -665,7 +715,7 @@ const Map = () => {
   });
 
   resources.current.forEach((vehicle) => {
-    map.current && drawVehicle(map.current, vehicle);
+    map.current && drawVehicle(map.current, vehicle, resources);
     map.current && ensureVehicleLayerOnTop(map.current, vehicle.id);
   });
 
