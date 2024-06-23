@@ -109,7 +109,6 @@ const processJsonData = (jsonData: JsonDataItem[]): Resource[] => {
     destination_lon: null,
     route: null,
     percent: null,
-    // Add similar lines for other additional properties
   }));
 };
 
@@ -527,43 +526,32 @@ const Map = () => {
       // d. What step within this leg are we?
       const steps = currentLeg.steps;
 
-      const { currentStep, currentDistance: currentStepDistance } =
-        steps.reduce<{
-          currentStep: null | Step;
-          currentDistance: number;
-        }>(
-          (acc, step) => {
-            if (acc.currentStep) {
-              return acc;
-            }
-            if (acc.currentDistance >= currentDistance) {
-              acc.currentStep = step;
-            } else {
-              acc.currentDistance += step.distance;
-            }
+      const { currentStep } = steps.reduce<{
+        currentStep: null | Step;
+        currentDistance: number;
+      }>(
+        (acc, step) => {
+          if (acc.currentStep) {
             return acc;
-          },
-          { currentDistance: currentLeg.distance, currentStep: null }
-        );
+          }
+          if (acc.currentDistance >= currentDistance) {
+            acc.currentStep = step;
+          } else {
+            acc.currentDistance += step.distance;
+          }
+          return acc;
+        },
+        { currentDistance: currentLeg.distance, currentStep: null }
+      );
 
       if (currentStep === null) {
         return vehicle;
       }
 
-      const currentStepStart = Math.max(
-        currentDistance - currentStepDistance,
-        0
-      );
-
-      // e. What percent of the way through this step are we?
-      const distanceThroughStep = currentDistance - currentStepStart;
-
-      const stepCompletion = distanceThroughStep / currentStep.distance;
-
       const index = Math.round(
         Math.max(Math.random() * currentStep.geometry.coordinates.length - 1, 0)
       );
-      console.log({ index, step: currentStep.geometry.coordinates });
+
       const stepCoordinate = currentStep.geometry.coordinates[index];
 
       vehicle.origin_lat = stepCoordinate[1];
