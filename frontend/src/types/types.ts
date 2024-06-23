@@ -8,10 +8,10 @@ export interface Destination {
   time_seconds: number;
 }
 
-interface ResponseData {
-  destinations: Destination[];
-  value: number;
-}
+// interface ResponseData {
+//   destinations: Destination[];
+//   value: number;
+// }
 
 export enum Capability {
     A = 1,

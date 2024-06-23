@@ -1,5 +1,5 @@
 from fastapi import FastAPI
-from starlette.middleware.cors import CORSMiddleware
+from fastapi.middleware.cors import CORSMiddleware
 from optimisation import run_optimisation
 import numpy as np
 from pydantic import BaseModel
@@ -45,12 +45,11 @@ app = FastAPI()
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=['*'],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
-
 
 @app.get("/")
 def root():
@@ -76,11 +75,8 @@ def get_distance(origins, destinations):
     return response.json()
 
 
-@app.post("/optimise/")
+@app.post("/optimise")
 def optimise(params: OptimisationQuery):
-
-    print(params.emergencies)
-
     num_vehicles = len(params.cars)
     num_incidents = len(params.emergencies)
 
