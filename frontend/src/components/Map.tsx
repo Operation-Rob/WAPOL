@@ -137,9 +137,8 @@ const severityMap: Record<EmergencyLevel, string> = {
 };
 
 const drawVehicle = (map: mapboxgl.Map, vehicle: Resource) => {
-  console.log("drawing vehicle", vehicle);
   if (map.getSource(`src_vehicle_${vehicle.id.toString()}`)) {
-    // @ts-expect-error setdata cbf fixing
+    // Update vehicle location
     map.getSource(`src_vehicle_${vehicle.id.toString()}`).setData({
       type: "Feature",
       properties: {},
@@ -149,11 +148,12 @@ const drawVehicle = (map: mapboxgl.Map, vehicle: Resource) => {
       },
     });
   } else {
+    // Create a new source for the vehicle
     map.addSource(`src_vehicle_${vehicle.id.toString()}`, {
       type: "geojson",
       data: {
-        properties: {},
         type: "Feature",
+        properties: {},
         geometry: {
           type: "Point",
           coordinates: [vehicle.origin_lon, vehicle.origin_lat],
@@ -161,13 +161,22 @@ const drawVehicle = (map: mapboxgl.Map, vehicle: Resource) => {
       },
     });
 
+    // Add a layer for the vehicle with dynamic scaling
     map.addLayer({
       id: `layer_vehicle_${vehicle.id.toString()}`,
       type: "symbol",
       source: `src_vehicle_${vehicle.id.toString()}`,
       layout: {
         "icon-image": capabilityToImage[vehicle.capability],
-        "icon-size": 0.2,
+        "icon-size": [
+          "interpolate", 
+          ["linear"], 
+          ["zoom"],
+          5, 0.06,   // At zoom level 5, icon size is 0.06
+          15, 0.12   // At zoom level 15, icon size is 0.12
+        ],
+        "icon-allow-overlap": true,
+        "icon-ignore-placement": true
       },
     });
   }
@@ -411,9 +420,9 @@ const Map = () => {
     updateResources(resources, payload);
 
     emergencies.forEach((emergency) => {
-      if (time === emergency.offset && map.current) {
+      if (time >= emergency.offset && map.current) {
         new mapboxgl.Marker({
-          color: severityMap[emergency.emergencyLevel],
+          color: severityMap[emergency.emergencyLevel as EmergencyLevel],
         })
           .setLngLat([
             emergency.location.longitude,
