@@ -47,7 +47,7 @@ const drawLine = (resource: Resource, map: mapboxgl.Map) => {
       type: "line",
       source: {
         type: "geojson",
-        // @ts-ignore
+        
         data: resource.route.geojson,
       },
 
