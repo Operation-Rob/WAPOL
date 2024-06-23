@@ -122,6 +122,7 @@ const emergencies: Emergency[] = [
     emergencyLevel: "Immediate",
     requirements: [1, 0, 0, 0, 0],
     offset: 0,
+    description: "Suspect armed with a knife is threatening a shop attendant",
   },
   {
     capability: [Capability.C],
@@ -130,6 +131,8 @@ const emergencies: Emergency[] = [
     emergencyLevel: "Urgent",
     requirements: [0, 0, 1, 0, 0],
     offset: 1500,
+    description:
+      "High speed pursuit with stolen Ford Falcon XR6, suspect believed to be under the influence of methamphetamine",
   },
   {
     capability: [Capability.E],
@@ -138,20 +141,28 @@ const emergencies: Emergency[] = [
     requirements: [0, 0, 0, 0, 1],
     emergencyLevel: "Non-Urgent",
     offset: 3000,
+    description: "Minor car accident, no serious injuries",
   },
 ];
 
 const severityMap: Record<EmergencyLevel, string> = {
   Immediate: "red",
-  Urgent: "yellow",
-  "Non-Urgent": "orange",
+  Urgent: "#ff5733", // orange
+  "Non-Urgent": " #FFC300", // yellow
   Routine: "blue",
 };
 
+const capabilityMap: Record<number, string> = {
+  0: "Police",
+  1: "Paddy Wagon",
+  2: "Highway Police Motorbike",
+  3: "Fire Truck",
+  4: "Ambulance",
+};
+
 const drawVehicle = (map: mapboxgl.Map, vehicle: Resource) => {
-  console.log("drawing vehicle", vehicle);
   if (map.getSource(`src_vehicle_${vehicle.id.toString()}`)) {
-    // @ts-expect-error setdata cbf fixing
+    // @ts-expect-error we suck
     map.getSource(`src_vehicle_${vehicle.id.toString()}`).setData({
       type: "Feature",
       properties: {},
@@ -161,11 +172,12 @@ const drawVehicle = (map: mapboxgl.Map, vehicle: Resource) => {
       },
     });
   } else {
+    // Create a new source for the vehicle
     map.addSource(`src_vehicle_${vehicle.id.toString()}`, {
       type: "geojson",
       data: {
-        properties: {},
         type: "Feature",
+        properties: {},
         geometry: {
           type: "Point",
           coordinates: [vehicle.origin_lon, vehicle.origin_lat],
@@ -173,13 +185,24 @@ const drawVehicle = (map: mapboxgl.Map, vehicle: Resource) => {
       },
     });
 
+    // Add a layer for the vehicle with dynamic scaling
     map.addLayer({
       id: `layer_vehicle_${vehicle.id.toString()}`,
       type: "symbol",
       source: `src_vehicle_${vehicle.id.toString()}`,
       layout: {
         "icon-image": capabilityToImage[vehicle.capability],
-        "icon-size": 0.2,
+        "icon-size": [
+          "interpolate",
+          ["linear"],
+          ["zoom"],
+          5,
+          0.06, // At zoom level 5, icon size is 0.06
+          15,
+          0.12, // At zoom level 15, icon size is 0.12
+        ],
+        "icon-allow-overlap": true,
+        "icon-ignore-placement": true,
       },
     });
   }
@@ -286,8 +309,8 @@ const Map = () => {
 
   const setTimer = () => {
     const interval = setInterval(() => {
-      setTime((prevTime) => prevTime + 3000); // Increment time every 3000ms
-    }, 3000);
+      setTime((prevTime) => prevTime + 5000); // Increment time every 3000ms
+    }, 5000);
     return interval;
   };
 
@@ -428,14 +451,36 @@ const Map = () => {
     updateResources(resources, payload);
 
     emergencies.forEach((emergency) => {
-      if (time === emergency.offset && map.current) {
+      if (time >= emergency.offset && map.current) {
         new mapboxgl.Marker({
-          color: severityMap[emergency.emergencyLevel],
+          color: severityMap[emergency.emergencyLevel as EmergencyLevel],
         })
           .setLngLat([
             emergency.location.longitude,
             emergency.location.latitude,
           ])
+          .setPopup(
+            new mapboxgl.Popup({ offset: 25 }).setHTML(
+              `<h3>${emergency.emergencyLevel}</h3>
+              <p>
+                ${emergency.location.latitude},
+                ${emergency.location.longitude} 
+                </p>
+                <p>
+                ${emergency.description ?? ""}
+                </p>
+                <p>
+                Required capabilities: ${JSON.stringify(
+                  emergency.requirements.flatMap((value, index) => {
+                    if (!value) {
+                      return [];
+                    }
+                    return capabilityMap[index] ?? [];
+                  }) ?? ""
+                )}
+                </p>`
+            )
+          )
           .addTo(map.current);
       }
     });
