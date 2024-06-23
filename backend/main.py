@@ -95,9 +95,16 @@ def optimise(params: OptimisationQuery):
 
     for i, car in enumerate(params.cars):
         for j, emergency in enumerate(params.emergencies):
-            # print(i, j, distance_data["rows"])
+            # # print(i, j, distance_data["rows"])
+            # try:
+            #     # D[i][j] = distance_data["rows"][i]["elements"][j]["duration"]["value"]
+            #     pass
+            # except:
+            #     # Euclidean fallback
+            D[i][j] = np.sqrt(
+                (car.lat - emergency.lat) ** 2 + (car.lon - emergency.lon) ** 2
+            )
 
-            D[i][j] = distance_data["rows"][i]["elements"][j]["duration"]["value"]
 
     for i, car in enumerate(params.cars):
         vehicle_types[i][car.capability - 1] = 1
