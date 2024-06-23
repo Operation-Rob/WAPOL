@@ -34,7 +34,7 @@ class Destination(BaseModel):
     emergency_lat: float
     emergency_lon: float
     time_seconds: float
-
+    severity: str
 
 class OptimisationResponse(BaseModel):
     destinations: list[Destination]
@@ -135,6 +135,7 @@ def optimise(params: OptimisationQuery):
                     emergency_lat=emergency_lat,
                     emergency_lon=emergency_lon,
                     time_seconds=D[car_index][emergency_index],
+                    severity=params.emergencies[emergency_index].priority,
                 )
             )
 

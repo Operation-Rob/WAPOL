@@ -41,6 +41,7 @@ const drawLine = (resource: Resource, map: mapboxgl.Map) => {
     console.log("redrawing");
     map.getSource(resource.id.toString()).setData(resource.route.geojson);
   } else {
+    console.log(resource.severity);
     map.addLayer({
       id: resource.id.toString(),
       type: "line",
@@ -55,7 +56,7 @@ const drawLine = (resource: Resource, map: mapboxgl.Map) => {
         "line-cap": "round",
       },
       paint: {
-        "line-color": "#3887be",
+        "line-color": severityMap[resource.severity as EmergencyLevel] ?? "black",
         "line-width": 5,
         "line-opacity": 0.75,
       },
@@ -116,205 +117,163 @@ const resourcesJson: Resource[] = processJsonData(jsonData);
 
 const emergencies: Emergency[] = [
   {
-    capability: [Capability.A, Capability.B, Capability.C, Capability.D, Capability.E],
-    location: { latitude: -31.7387003, longitude: 115.7672242 },
-    emergencyId: 1,
-    emergencyLevel: "Immediate",
-    requirements: [1, 1, 1, 1, 1],
-    offset: 20_000,
-    description: "Suspect armed with a knife is threatening a shop attendant",
-  },
-  {
-    capability: [Capability.A, Capability.C],
-    location: { latitude: -31.983119, longitude: 115.781367 },
-    emergencyId: 2,
-    emergencyLevel: "Urgent",
-    requirements: [1, 0, 1, 0, 0],
-    offset: 1500,
-    description:
-      "High speed pursuit with stolen Ford Falcon XR6, suspect believed to be under the influence of methamphetamine",
-  },
-  {
-    capability: [Capability.E],
-    location: { latitude: -31.914221, longitude: 115.828848 },
-    emergencyId: 3,
-    requirements: [0, 0, 0, 0, 1],
-    emergencyLevel: "Non-Urgent",
-    offset: 3000,
-    description: "Minor car accident, no serious injuries",
-  },
-  {
     "capability": [Capability.A, Capability.B, Capability.C, Capability.D, Capability.E],
-    "location": { "latitude": -31.981558, "longitude": 115.92624 },
+    "location": { "latitude": -31.7387003, "longitude": 115.7672242 },
     "emergencyId": 49284656,
     "emergencyLevel": "Immediate",
     "requirements": [1, 1, 1, 1, 1],
     "offset": 19205,
-    "description": "Incident B"
-  },
-  {
-      "capability": [Capability.D],
-      "location": { "latitude": -31.9036, "longitude": 115.913215 },
-      "emergencyId": 49284657,
-      "emergencyLevel": "Non-Urgent",
-      "requirements": [0, 0, 0, 0, 1],
-      "offset": 16500,
-      "description": "Incident D"
-  },
-  {
-      "capability": [Capability.C],
-      "location": { "latitude": -31.948805, "longitude": 115.828462 },
-      "emergencyId": 49284658,
-      "emergencyLevel": "Routine",
-      "requirements": [0, 1, 0, 0, 0],
-      "offset": 16300,
-      "description": "Incident C"
-  },
-  {
-      "capability": [Capability.C],
-      "location": { "latitude": -32.036174, "longitude": 115.755841 },
-      "emergencyId": 49284659,
-      "emergencyLevel": "Routine",
-      "requirements": [0, 1, 0, 0, 0],
-      "offset": 17300,
-      "description": "Incident C"
-  },
-  {
-      "capability": [Capability.B],
-      "location": { "latitude": -32.0921, "longitude": 115.849314 },
-      "emergencyId": 49284660,
-      "emergencyLevel": "Urgent",
-      "requirements": [1, 0, 0, 0, 0],
-      "offset": 12200,
-      "description": "Incident B"
-  },
-  {
-      "capability": [Capability.C],
-      "location": { "latitude": -31.980767, "longitude": 115.890935 },
-      "emergencyId": 49284661,
-      "emergencyLevel": "Routine",
-      "requirements": [0, 1, 0, 0, 0],
-      "offset": 15200,
-      "description": "Incident C"
-  },
-  {
-      "capability": [Capability.D],
-      "location": { "latitude": -32.022263, "longitude": 115.95512 },
-      "emergencyId": 49284663,
-      "emergencyLevel": "Non-Urgent",
-      "requirements": [0, 0, 0, 0, 1],
-      "offset": 11400,
-      "description": "Incident D"
-  },
-  {
-      "capability": [Capability.B],
-      "location": { "latitude": -31.880524, "longitude": 115.754796 },
-      "emergencyId": 49284664,
-      "emergencyLevel": "Urgent",
-      "requirements": [1, 0, 0, 0, 0],
-      "offset": 14000,
-      "description": "Incident B"
-  },
-  {
-      "capability": [Capability.C],
-      "location": { "latitude": -31.934358, "longitude": 115.815276 },
-      "emergencyId": 49284666,
-      "emergencyLevel": "Routine",
-      "requirements": [0, 1, 0, 0, 0],
-      "offset": 8000,
-      "description": "Incident C"
-  },
-  {
-      "capability": [Capability.C],
-      "location": { "latitude": -32.009152, "longitude": 115.856727 },
-      "emergencyId": 49284667,
-      "emergencyLevel": "Routine",
-      "requirements": [0, 1, 0, 0, 0],
-      "offset": 18300,
-      "description": "Incident C"
-  },
-  {
-      "capability": [Capability.E],
-      "location": { "latitude": -31.984809, "longitude": 115.922419 },
-      "emergencyId": 49284668,
-      "emergencyLevel": "Immediate",
-      "requirements": [0, 0, 0, 0, 1],
-      "offset": 17000,
-      "description": "Incident E"
-  },
-  {
-      "capability": [Capability.B],
-      "location": { "latitude": -31.914127, "longitude": 115.842442 },
-      "emergencyId": 49284670,
-      "emergencyLevel": "Urgent",
-      "requirements": [1, 0, 0, 0, 0],
-      "offset": 16450,
-      "description": "Incident B"
-  },
-  {
-      "capability": [Capability.B],
-      "location": { "latitude": -31.818961, "longitude": 115.788924 },
-      "emergencyId": 49284672,
-      "emergencyLevel": "Urgent",
-      "requirements": [1, 0, 0, 0, 0],
-      "offset": 15450,
-      "description": "Incident B"
-  }
-  // {
-  //     "capability": [Capability.D],
-  //     "location": { "latitude": -31.925229, "longitude": 115.817027 },
-  //     "emergencyId": 49284673,
-  //     "emergencyLevel": "Non-Urgent",
-  //     "requirements": [0, 0, 0, 0, 1],
-  //     "offset": 1707,
-  //     "description": "Incident D"
-  // },
-  // {
-  //     "capability": [Capability.E],
-  //     "location": { "latitude": -31.922034, "longitude": 115.850471 },
-  //     "emergencyId": 49284675,
-  //     "emergencyLevel": "Immediate",
-  //     "requirements": [0, 0, 0, 0, 1],
-  //     "offset": 50,
-  //     "description": "Incident E"
-  // },
-  // {
-  //     "capability": [Capability.B],
-  //     "location": { "latitude": -31.834119, "longitude": 115.831054 },
-  //     "emergencyId": 49284676,
-  //     "emergencyLevel": "Urgent",
-  //     "requirements": [1, 0, 0, 0, 0],
-  //     "offset": 1710,
-  //     "description": "Incident B"
-  // },
-  // {
-  //     "capability": [Capability.B],
-  //     "location": { "latitude": -32.043478, "longitude": 115.822312 },
-  //     "emergencyId": 49284677,
-  //     "emergencyLevel": "Urgent",
-  //     "requirements": [1, 0, 0, 0, 0],
-  //     "offset": 1100,
-  //     "description": "Incident B"
-  // },
-  // {
-  //     "capability": [Capability.C],
-  //     "location": { "latitude": -31.772396, "longitude": 115.947907 },
-  //     "emergencyId": 49284678,
-  //     "emergencyLevel": "Routine",
-  //     "requirements": [0, 1, 0, 0, 0],
-  //     "offset": 835,
-  //     "description": "Incident C"
-  // },
-  // {
-  //     "capability": [Capability.C],
-  //     "location": { "latitude": -32.046058, "longitude": 115.849593 },
-  //     "emergencyId": 49284679,
-  //     "emergencyLevel": "Routine",
-  //     "requirements": [0, 1, 0, 0, 0],
-  //     "offset": 740,
-  //     "description": "Incident C"
-  // },
+    "description": "Multi-vehicle collision involving hazardous materials, with injuries reported"
+    },
 
+    {
+      "capability": [Capability.A, Capability.B, Capability.C, Capability.D, Capability.E],
+      "location": { "latitude": -31.8953, "longitude": 115.8747 },
+      "emergencyId": 49284656,
+      "emergencyLevel": "Immediate",
+      "requirements": [1, 1, 1, 1, 1],
+      "offset": 21205,
+      "description": "Multi-vehicle collision involving hazardous materials, with injuries reported"
+      },
+
+      {
+        "capability": [Capability.A, Capability.B, Capability.C, Capability.D, Capability.E],
+        "location": { "latitude": -31.937724, "longitude": 115.900527 },
+        "emergencyId": 49284656,
+        "emergencyLevel": "Immediate",
+        "requirements": [1, 1, 1, 1, 1],
+        "offset": 24205,
+        "description": "Multi-vehicle collision involving hazardous materials, with injuries reported"
+        },
+        {
+          "capability": [Capability.A, Capability.B, Capability.C, Capability.D, Capability.E],
+          "location": { "latitude": -31.9830103, "longitude": 115.7816722 },
+          "emergencyId": 49284656,
+          "emergencyLevel": "Immediate",
+          "requirements": [1, 1, 1, 1, 1],
+          "offset": 23205,
+          "description": "Multi-vehicle collision involving hazardous materials, with injuries reported"
+          },
+    
+    {
+    "capability": [Capability.D],
+    "location": { "latitude": -31.9036, "longitude": 115.913215 },
+    "emergencyId": 49284657,
+    "emergencyLevel": "Non-Urgent",
+    "requirements": [0, 0, 0, 0, 1],
+    "offset": 16500,
+    "description": "Controlled burn of large fallen tree blocking secondary road"
+    },
+    
+    {
+    "capability": [Capability.C],
+    "location": { "latitude": -31.948805, "longitude": 115.828462 },
+    "emergencyId": 49284658,
+    "emergencyLevel": "Routine",
+    "requirements": [0, 1, 0, 0, 0],
+    "offset": 16300,
+    "description": "Lost tourist on Kings Park hiking trail needs assistance"
+    },
+    
+    {
+    "capability": [Capability.C],
+    "location": { "latitude": -32.036174, "longitude": 115.755841 },
+    "emergencyId": 49284659,
+    "emergencyLevel": "Routine",
+    "requirements": [0, 1, 0, 0, 0],
+    "offset": 17300,
+    "description": "Elderly man with dementia wandered away from home near Fremantle"
+    },
+    
+    {
+    "capability": [Capability.B],
+    "location": { "latitude": -32.0921, "longitude": 115.849314 },
+    "emergencyId": 49284660,
+    "emergencyLevel": "Urgent",
+    "requirements": [1, 0, 0, 0, 0],
+    "offset": 12200,
+    "description": "Armed robbery at a jewelry store in Rockingham, suspects are still at large"
+    },
+    
+    {
+    "capability": [Capability.C],
+    "location": { "latitude": -31.980767, "longitude": 115.890935 },
+    "emergencyId": 49284661,
+    "emergencyLevel": "Routine",
+    "requirements": [0, 1, 0, 0, 0],
+    "offset": 15200,
+    "description": "Minor road accident in Victoria Park, traffic direction needed"
+    },
+    
+    {
+    "capability": [Capability.D],
+    "location": { "latitude": -32.022263, "longitude": 115.95512 },
+    "emergencyId": 49284663,
+    "emergencyLevel": "Non-Urgent",
+    "requirements": [0, 0, 0, 0, 1],
+    "offset": 11400,
+    "description": "Cat stuck in tree in Highgate, owner requesting assistance"
+    },
+    
+    {
+    "capability": [Capability.B],
+    "location": { "latitude": -31.880524, "longitude": 115.754796 },
+    "emergencyId": 49284664,
+    "emergencyLevel": "Urgent",
+    "requirements": [1, 0, 0, 0, 0],
+    "offset": 14000,
+    "description": "Bank heist in Fremantle, multiple hostages involved"
+    },
+    
+    {
+    "capability": [Capability.C],
+    "location": { "latitude": -31.934358, "longitude": 115.815276 },
+    "emergencyId": 49284666,
+    "emergencyLevel": "Routine",
+    "requirements": [0, 1, 0, 0, 0],
+    "offset": 8000,
+    "description": "Teenagers climbing construction crane, need to be escorted down safely"
+    },
+    
+    {
+    "capability": [Capability.C],
+    "location": { "latitude": -32.009152, "longitude": 115.856727 },
+    "emergencyId": 49284667,
+    "emergencyLevel": "Routine",
+    "requirements": [0, 1, 0, 0, 0],
+    "offset": 18300,
+    "description": "Stranded kite surfer off coast near Scarborough, needs retrieval"
+    },
+    
+    {
+    "capability": [Capability.E],
+    "location": { "latitude": -31.984809, "longitude": 115.922419 },
+    "emergencyId": 49284668,
+    "emergencyLevel": "Immediate",
+    "requirements": [0, 0, 0, 0, 1],
+    "offset": 17000,
+    "description": "Multiple casualties in a nightclub fire in Perth CBD, urgent medical response required"
+    },
+    
+    {
+    "capability": [Capability.B],
+    "location": { "latitude": -31.914127, "longitude": 115.842442 },
+    "emergencyId": 49284670,
+    "emergencyLevel": "Urgent",
+    "requirements": [1, 0, 0, 0, 0],
+    "offset": 16450,
+    "description": "Break-in at an electronics warehouse in Osborne Park, suspects still inside"
+    },
+    
+    {
+    "capability": [Capability.B],
+    "location": { "latitude": -31.818961, "longitude": 115.788924 },
+    "emergencyId": 49284672,
+    "emergencyLevel": "Urgent",
+    "requirements": [1, 0, 0, 0, 0],
+    "offset": 15450,
+    "description": "Suspicious vehicle with possible explosives parked outside a government building in Joondalup"
+    }
 ];
 
 const severityMap: Record<EmergencyLevel, string> = {
@@ -484,6 +443,7 @@ const updateResources = async (
         ...newVehicle,
         route: newRoute,
         percent: percent + 0.04,
+        severity: responseVehicle.severity,
       };
     })
   );
