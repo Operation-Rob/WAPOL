@@ -290,54 +290,53 @@ const capabilityMap: Record<number, string> = {
   4: "Ambulance",
 };
 
-const drawVehicle = (map: mapboxgl.Map, vehicle: Resource) => {
-  if (map.getSource(`src_vehicle_${vehicle.id.toString()}`)) {
-    // @ts-expect-error we suck
-    map.getSource(`src_vehicle_${vehicle.id.toString()}`).setData({
-      type: "Feature",
-      properties: {},
-      geometry: {
-        type: "Point",
-        coordinates: [vehicle.origin_lon, vehicle.origin_lat],
-      },
-    });
-  } else {
-    // Create a new source for the vehicle
-    map.addSource(`src_vehicle_${vehicle.id.toString()}`, {
-      type: "geojson",
-      data: {
+  const drawVehicle = (map: mapboxgl.Map, vehicle: Resource) => {
+    if (map.getSource(`src_vehicle_${vehicle.id.toString()}`)) {
+      // @ts-expect-error we suck
+      map.getSource(`src_vehicle_${vehicle.id.toString()}`).setData({
         type: "Feature",
         properties: {},
         geometry: {
           type: "Point",
           coordinates: [vehicle.origin_lon, vehicle.origin_lat],
         },
-      },
-    });
-
-    // Add a layer for the vehicle with dynamic scaling
-    map.addLayer({
-      id: `layer_vehicle_${vehicle.id.toString()}`,
-      type: "symbol",
-      source: `src_vehicle_${vehicle.id.toString()}`,
-      layout: {
-        "icon-image": capabilityToImage[vehicle.capability],
-        "icon-size": [
-          "interpolate",
-          ["linear"],
-          ["zoom"],
-          5,
-          0.06, // At zoom level 5, icon size is 0.06
-          15,
-          0.12, // At zoom level 15, icon size is 0.12
-        ],
-        "icon-allow-overlap": true,
-        "icon-ignore-placement": true,
-      },
-    });
-  }
-};
-
+      });
+    } else {
+      // Create a new source for the vehicle
+      map.addSource(`src_vehicle_${vehicle.id.toString()}`, {
+        type: "geojson",
+        data: {
+          type: "Feature",
+          properties: {},
+          geometry: {
+            type: "Point",
+            coordinates: [vehicle.origin_lon, vehicle.origin_lat],
+          },
+        },
+      });
+  
+      // Add a layer for the vehicle with dynamic scaling
+      map.addLayer({
+        id: `layer_vehicle_${vehicle.id.toString()}`,
+        type: "symbol",
+        source: `src_vehicle_${vehicle.id.toString()}`,
+        layout: {
+          "icon-image": capabilityToImage[vehicle.capability],
+          "icon-size": [
+            "interpolate",
+            ["linear"],
+            ["zoom"],
+            5,
+            0.06, // At zoom level 5, icon size is 0.06
+            15,
+            0.12, // At zoom level 15, icon size is 0.12
+          ],
+          "icon-allow-overlap": true,
+          "icon-ignore-placement": true,
+        },
+      });
+    }
+  };
 const updateResources = async (
   resources: React.MutableRefObject<Resource[]>,
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -399,6 +398,14 @@ const updateResources = async (
 
   resources.current = newResources;
 };
+
+const ensureVehicleLayerOnTop = (map, vehicleId) => {
+  const vehicleLayerId = `layer_vehicle_${vehicleId}`;
+  if (map.getLayer(vehicleLayerId)) {
+    map.moveLayer(vehicleLayerId); // This moves the layer to the top
+  }
+};
+
 
 const Map = () => {
   mapboxgl.accessToken = MAPBOX_KEY;
@@ -617,6 +624,7 @@ const Map = () => {
 
   resources.current.forEach((vehicle) => {
     map.current && drawVehicle(map.current, vehicle);
+    map.current && ensureVehicleLayerOnTop(map.current, vehicle.id);
   });
 
   console.log("rendering");
