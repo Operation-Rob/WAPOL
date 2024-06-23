@@ -131,14 +131,14 @@ const emergencies: Emergency[] = [
 
 const severityMap: Record<EmergencyLevel, string> = {
   Immediate: "red",
-  Urgent: "yellow",
-  "Non-Urgent": "orange",
+  Urgent: "#ff5733", // orange
+  "Non-Urgent": " #FFC300", // yellow
   Routine: "blue",
 };
 
 const drawVehicle = (map: mapboxgl.Map, vehicle: Resource) => {
   if (map.getSource(`src_vehicle_${vehicle.id.toString()}`)) {
-    // Update vehicle location
+    // @ts-expect-error we suck
     map.getSource(`src_vehicle_${vehicle.id.toString()}`).setData({
       type: "Feature",
       properties: {},
@@ -169,14 +169,16 @@ const drawVehicle = (map: mapboxgl.Map, vehicle: Resource) => {
       layout: {
         "icon-image": capabilityToImage[vehicle.capability],
         "icon-size": [
-          "interpolate", 
-          ["linear"], 
+          "interpolate",
+          ["linear"],
           ["zoom"],
-          5, 0.06,   // At zoom level 5, icon size is 0.06
-          15, 0.12   // At zoom level 15, icon size is 0.12
+          5,
+          0.06, // At zoom level 5, icon size is 0.06
+          15,
+          0.12, // At zoom level 15, icon size is 0.12
         ],
         "icon-allow-overlap": true,
-        "icon-ignore-placement": true
+        "icon-ignore-placement": true,
       },
     });
   }
@@ -283,8 +285,8 @@ const Map = () => {
 
   const setTimer = () => {
     const interval = setInterval(() => {
-      setTime((prevTime) => prevTime + 3000); // Increment time every 3000ms
-    }, 3000);
+      setTime((prevTime) => prevTime + 5000); // Increment time every 3000ms
+    }, 5000);
     return interval;
   };
 
@@ -421,6 +423,7 @@ const Map = () => {
 
     emergencies.forEach((emergency) => {
       if (time >= emergency.offset && map.current) {
+        console.log({ emergency });
         new mapboxgl.Marker({
           color: severityMap[emergency.emergencyLevel as EmergencyLevel],
         })
