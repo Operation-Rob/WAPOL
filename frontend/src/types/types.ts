@@ -35,6 +35,7 @@ export type Emergency = {
   emergencyLevel: EmergencyLevel;
   offset: number;
   requirements: number[];
+  description?: string;
 };
 
 export type Resource = {

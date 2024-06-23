@@ -110,6 +110,7 @@ const emergencies: Emergency[] = [
     emergencyLevel: "Immediate",
     requirements: [1, 0, 0, 0, 0],
     offset: 0,
+    description: "Suspect armed with a knife is threatening a shop attendant",
   },
   {
     capability: [Capability.C],
@@ -118,6 +119,8 @@ const emergencies: Emergency[] = [
     emergencyLevel: "Urgent",
     requirements: [0, 0, 1, 0, 0],
     offset: 1500,
+    description:
+      "High speed pursuit with stolen Ford Falcon XR6, suspect believed to be under the influence of methamphetamine",
   },
   {
     capability: [Capability.E],
@@ -126,6 +129,7 @@ const emergencies: Emergency[] = [
     requirements: [0, 0, 0, 0, 1],
     emergencyLevel: "Non-Urgent",
     offset: 3000,
+    description: "Minor car accident, no serious injuries",
   },
 ];
 
@@ -134,6 +138,14 @@ const severityMap: Record<EmergencyLevel, string> = {
   Urgent: "#ff5733", // orange
   "Non-Urgent": " #FFC300", // yellow
   Routine: "blue",
+};
+
+const capabilityMap: Record<number, string> = {
+  0: "Police",
+  1: "Paddy Wagon",
+  2: "Highway Police Motorbike",
+  3: "Fire Truck",
+  4: "Ambulance",
 };
 
 const drawVehicle = (map: mapboxgl.Map, vehicle: Resource) => {
@@ -423,7 +435,6 @@ const Map = () => {
 
     emergencies.forEach((emergency) => {
       if (time >= emergency.offset && map.current) {
-        console.log({ emergency });
         new mapboxgl.Marker({
           color: severityMap[emergency.emergencyLevel as EmergencyLevel],
         })
@@ -431,6 +442,28 @@ const Map = () => {
             emergency.location.longitude,
             emergency.location.latitude,
           ])
+          .setPopup(
+            new mapboxgl.Popup({ offset: 25 }).setHTML(
+              `<h3>${emergency.emergencyLevel}</h3>
+              <p>
+                ${emergency.location.latitude},
+                ${emergency.location.longitude} 
+                </p>
+                <p>
+                ${emergency.description ?? ""}
+                </p>
+                <p>
+                Required capabilities: ${JSON.stringify(
+                  emergency.requirements.flatMap((value, index) => {
+                    if (!value) {
+                      return [];
+                    }
+                    return capabilityMap[index] ?? [];
+                  }) ?? ""
+                )}
+                </p>`
+            )
+          )
           .addTo(map.current);
       }
     });
