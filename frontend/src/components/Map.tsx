@@ -37,9 +37,9 @@ const drawLine = (resource: Resource, map: mapboxgl.Map) => {
 
   if (!resource.route) return;
   if (map.getSource(resource.id.toString())) {
-    console.log("redrawing");
     // @ts-ignore
-    (map.getSource(resource.id.toString()) as mapboxgl.GeoJSONSource).setData(resource.route.geojson);
+    console.log("redrawing");
+    map.getSource(resource.id.toString()).setData(resource.route.geojson);
   } else {
     console.log(resource.severity);
     map.addLayer({
@@ -106,11 +106,10 @@ const processJsonData = (jsonData: JsonDataItem[]): Resource[] => {
     ...item,
     origin_lat: item.latitude,
     origin_lon: item.longitude,
-    destination_lat: null,
+    destination_lat: null, // Set defaults for additional properties not in jsonData
     destination_lon: null,
     route: null,
     percent: null,
-    severity: null,
   }));
 };
 
@@ -367,7 +366,7 @@ const drawVehicle = (map: mapboxgl.Map, vehicle: Resource, resources: React.Muta
       resources.current = updatedResources;
 
       // Update the vehicle's position
-      (map.getSource(`src_vehicle_${draggedVehicleId.toString()}`) as mapboxgl.GeoJSONSource).setData({
+      map.getSource(`src_vehicle_${draggedVehicleId.toString()}`).setData({
         type: "Feature",
         properties: {},
         geometry: {
@@ -452,8 +451,7 @@ const updateResources = async (
   resources.current = newResources;
 };
 
-const ensureVehicleLayerOnTop = (map: mapboxgl.Map, vehicleId: number) => {
-
+const ensureVehicleLayerOnTop = (map, vehicleId) => {
   const vehicleLayerId = `layer_vehicle_${vehicleId}`;
   if (map.getLayer(vehicleLayerId)) {
     map.moveLayer(vehicleLayerId); // This moves the layer to the top
@@ -625,8 +623,7 @@ const Map = () => {
 
     resources.current.forEach((resource) => {
       // First we delete the old route
-      map.current && resource.route && deleteLine(resource, map.current);
-
+      map.current && resource.route && deleteLine(resource.route, map.current);
     });
 
     updateResources(resources, payload);
@@ -667,7 +664,7 @@ const Map = () => {
     });
   }, [time]);
 
-  resources.current.forEach(() => {
+  resources.current.forEach((resource) => {
     // First we delete the old route
     // map.current && resource.route && deleteLine(resource, map.current);
   });
