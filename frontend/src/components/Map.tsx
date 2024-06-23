@@ -41,6 +41,7 @@ const drawLine = (resource: Resource, map: mapboxgl.Map) => {
     console.log("redrawing");
     map.getSource(resource.id.toString()).setData(resource.route.geojson);
   } else {
+    console.log(resource.severity);
     map.addLayer({
       id: resource.id.toString(),
       type: "line",
@@ -55,7 +56,7 @@ const drawLine = (resource: Resource, map: mapboxgl.Map) => {
         "line-cap": "round",
       },
       paint: {
-        "line-color": "#3887be",
+        "line-color": severityMap[resource.severity as EmergencyLevel] ?? "black",
         "line-width": 5,
         "line-opacity": 0.75,
       },
@@ -392,6 +393,7 @@ const updateResources = async (
         ...newVehicle,
         route: newRoute,
         percent: percent + 0.04,
+        severity: responseVehicle.severity,
       };
     })
   );

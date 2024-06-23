@@ -47,6 +47,7 @@ export type Resource = {
   destination_lon: number | null;
   route: Route | null;
   percent: number | null;
+  severity: EmergencyLevel | null;
 };
 
 export type JsonDataItem = {
