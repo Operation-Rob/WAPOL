@@ -23,18 +23,30 @@ const MAPBOX_KEY = import.meta.env.VITE_MAPBOX_KEY;
 
 const START_POSITION = { lat: -31.9498342, long: 115.8578795 };
 
-const drawLine = (route: Route, map: mapboxgl.Map) => {
-  if (map.getSource(route.id)) {
+const deleteLine = (resource: Resource, map: mapboxgl.Map) => {
+  if (map.getLayer(resource.id.toString())) {
+    map.removeLayer(resource.id.toString());
+  }
+  
+  if (map.getSource(resource.id.toString())) {
+    map.removeSource(resource.id.toString());
+  }
+};
+
+const drawLine = (resource: Resource, map: mapboxgl.Map) => {
+  console.log("drawing");
+  if (!resource.route) return;
+  if (map.getSource(resource.id.toString())) {
     // @ts-ignore
-    map.getSource(route.id).setData(route.geojson);
+    map.getSource(resource.id.toString()).setData(resource.route.geojson);
   } else {
     map.addLayer({
-      id: route.id,
+      id: resource.id.toString(),
       type: "line",
       source: {
         type: "geojson",
         // @ts-ignore
-        data: route.geojson,
+        data: resource.route.geojson,
       },
 
       layout: {
@@ -408,6 +420,11 @@ const Map = () => {
       emergencies: formattedEmergencies,
     };
 
+    resources.current.forEach((resource) => {
+      // First we delete the old route
+      map.current && resource.route && deleteLine(resource.route, map.current);
+    });
+
     updateResources(resources, payload);
 
     emergencies.forEach((emergency) => {
@@ -425,7 +442,13 @@ const Map = () => {
   }, [time]);
 
   resources.current.forEach((resource) => {
-    map.current && resource.route && drawLine(resource.route, map.current);
+    // First we delete the old route
+    map.current && resource.route && deleteLine(resource, map.current);
+  });
+
+  resources.current.forEach((resource) => {
+    // Then we add the new route
+    map.current && resource.route && drawLine(resource, map.current);
   });
 
   resources.current.forEach((vehicle) => {
