@@ -13,7 +13,6 @@ import {
   // GeoJSON,
   // Geometry,
   JsonDataItem,
-  Destination,
   Leg,
   Step,
 } from "../types/types.ts";
@@ -23,7 +22,6 @@ import { useRef, useEffect, useState } from "react";
 const MAPBOX_KEY = import.meta.env.VITE_MAPBOX_KEY;
 
 const START_POSITION = { lat: -31.9498342, long: 115.8578795 };
-const END_POSITION = { lat: -31.7387003, long: 115.7672242 };
 
 const drawLine = (route: Route, map: mapboxgl.Map) => {
   if (map.getSource(route.id)) {
@@ -104,34 +102,42 @@ const processJsonData = (jsonData: JsonDataItem[]): Resource[] => {
 
 const resourcesJson: Resource[] = processJsonData(jsonData);
 
-// const emergencies: Emergency[] = [
-//   {
-//     capability: [Capability.A],
-//     location: { latitude: -32, longitude: 115.9 },
-//     emergencyId: 1,
-//     emergencyLevel: EmergencyLevel.Immediate,
-//     requirements: [1, 0, 0, 0, 0],
-//     offset: 0,
-//   },
-//   {
-//     capability: [Capability.C],
-//     location: { latitude: -33, longitude: 115.9 },
-//     emergencyId: 2,
-//     emergencyLevel: EmergencyLevel.Urgent,
-//     requirements: [0, 0, 1, 0, 0],
-//     offset: 1500,
-//   },
-//   {
-//     capability: [Capability.E],
-//     location: { latitude: -31, longitude: 115.9 },
-//     emergencyId: 3,
-//     requirements: [0, 0, 0, 0, 1],
-//     emergencyLevel: EmergencyLevel["Non-Urgent"],
-//     offset: 3000,
-//   },
-// ];
+const emergencies: Emergency[] = [
+  {
+    capability: [Capability.A],
+    location: { latitude: -32, longitude: 115.9 },
+    emergencyId: 1,
+    emergencyLevel: "Immediate",
+    requirements: [1, 0, 0, 0, 0],
+    offset: 0,
+  },
+  {
+    capability: [Capability.C],
+    location: { latitude: -33, longitude: 115.9 },
+    emergencyId: 2,
+    emergencyLevel: "Urgent",
+    requirements: [0, 0, 1, 0, 0],
+    offset: 1500,
+  },
+  {
+    capability: [Capability.E],
+    location: { latitude: -31, longitude: 115.9 },
+    emergencyId: 3,
+    requirements: [0, 0, 0, 0, 1],
+    emergencyLevel: "Non-Urgent",
+    offset: 3000,
+  },
+];
+
+const severityMap: Record<EmergencyLevel, string> = {
+  Immediate: "red",
+  Urgent: "yellow",
+  "Non-Urgent": "orange",
+  Routine: "blue",
+};
 
 const drawVehicle = (map: mapboxgl.Map, vehicle: Resource) => {
+  console.log("drawing vehicle", vehicle);
   if (map.getSource(`src_vehicle_${vehicle.id.toString()}`)) {
     // @ts-expect-error setdata cbf fixing
     map.getSource(`src_vehicle_${vehicle.id.toString()}`).setData({
@@ -216,10 +222,12 @@ const updateResources = async (
         }
       );
 
+      const percent =
+        typeof newVehicle.percent === "number" ? newVehicle.percent : 0;
       return {
         ...newVehicle,
         route: newRoute,
-        percent: 0,
+        percent: percent + 0.01,
       };
     })
   );
@@ -233,10 +241,7 @@ const Map = () => {
   const map = useRef<mapboxgl.Map | null>(null);
   const [time, setTime] = useState(0);
 
-  const [renderTick, setRenderTick] = useState(0);
-
   const resources = useRef<Resource[]>(resourcesJson);
-
 
   const initialiseMap = () => {
     if (map.current || !mapContainer.current) return; // initialize map only once
@@ -274,17 +279,11 @@ const Map = () => {
     return interval;
   };
 
-  const setRenderTimer = () => {
-    const interval = setInterval(() => {
-      setRenderTick((prevTime) => prevTime + 2000); // Increment time every 2000ms
-    }, 200);
-    return interval;
-  };
-
   useEffect(() => {
     const newResources = resources.current.map((vehicle) => {
       // 1. How far along the path are we currently?
       // a. How long is route in total
+
       if (!vehicle.route) return vehicle;
 
       const totalLength = vehicle.route?.length;
@@ -317,58 +316,53 @@ const Map = () => {
         return vehicle;
       }
 
-
       // d. What step within this leg are we?
       const steps = currentLeg.steps;
-      
-      const { currentStep, currentDistance: currentStepDistance } = steps.reduce<{
-        currentStep: null | Step;
-        currentDistance: number;
-      }>(
-        (acc, step) => {
-          if (acc.currentStep) {
+
+      const { currentStep, currentDistance: currentStepDistance } =
+        steps.reduce<{
+          currentStep: null | Step;
+          currentDistance: number;
+        }>(
+          (acc, step) => {
+            if (acc.currentStep) {
+              return acc;
+            }
+            if (acc.currentDistance >= currentDistance) {
+              acc.currentStep = step;
+            } else {
+              acc.currentDistance += step.distance;
+            }
             return acc;
-          }
-          acc.currentDistance += step.distance;
-          if (acc.currentDistance >= currentDistance) {
-            acc.currentStep = step;
-          }
-          return acc;
-        },
-        { currentDistance: currentLeg.distance, currentStep: null }
-      );
+          },
+          { currentDistance: currentLeg.distance, currentStep: null }
+        );
 
       if (currentStep === null) {
         return vehicle;
       }
 
-      const currentStepStart = currentDistance - currentStepDistance;
-      
+      const currentStepStart = Math.max(
+        currentDistance - currentStepDistance,
+        0
+      );
 
       // e. What percent of the way through this step are we?
       const distanceThroughStep = currentDistance - currentStepStart;
 
-      console.log
-
       const stepCompletion = distanceThroughStep / currentStep.distance;
-      
 
-      const indx = Math.round((currentStep.geometry.coordinates.length - 1) * stepCompletion);
-
-      console.log({ distanceThroughStep, stepCompletion, swag: currentStep.geometry.coordinates, yolo: indx })
-
-      const stepCoordinate = currentStep.geometry.coordinates[Math.round((currentStep.geometry.coordinates.length - 1) * stepCompletion)]
+      const index = Math.round(
+        Math.max(Math.random() * currentStep.geometry.coordinates.length - 1, 0)
+      );
+      console.log({ index, step: currentStep.geometry.coordinates });
+      const stepCoordinate = currentStep.geometry.coordinates[index];
 
       vehicle.origin_lat = stepCoordinate[1];
       vehicle.origin_lon = stepCoordinate[0];
 
-      console.log('SDFSDFSDFSDF');
-
-      vehicle.percent += 0.1;
-      return vehicle;
-    }) ?? [];
-
-    console.log(newResources);
+      return { ...vehicle };
+    });
 
     resources.current = newResources;
   }, [time]);
@@ -377,13 +371,10 @@ const Map = () => {
     initialiseMap();
 
     const interval = setTimer();
-    // const renderInterval = setRenderTimer();
-    
+
     return () => {
       clearInterval(interval);
-      // clearInterval(renderInterval);
     };
-
   }, []);
 
   useEffect(() => {
@@ -405,7 +396,7 @@ const Map = () => {
         return {
           lat: emergency.location.latitude,
           lon: emergency.location.longitude,
-          priority: EmergencyLevel[emergency.emergencyLevel],
+          priority: emergency.emergencyLevel,
           requirements: emergency.requirements,
           id: emergency.emergencyId,
         };
@@ -421,7 +412,9 @@ const Map = () => {
 
     emergencies.forEach((emergency) => {
       if (time === emergency.offset && map.current) {
-        new mapboxgl.Marker()
+        new mapboxgl.Marker({
+          color: severityMap[emergency.emergencyLevel],
+        })
           .setLngLat([
             emergency.location.longitude,
             emergency.location.latitude,
@@ -429,10 +422,10 @@ const Map = () => {
           .addTo(map.current);
       }
     });
-  }, [time, emergencies]);
+  }, [time]);
 
-  resources.current.forEach((eddie) => {
-    map.current && eddie.route && drawLine(eddie.route, map.current);
+  resources.current.forEach((resource) => {
+    map.current && resource.route && drawLine(resource.route, map.current);
   });
 
   resources.current.forEach((vehicle) => {

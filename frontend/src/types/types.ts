@@ -14,45 +14,39 @@ export interface Destination {
 // }
 
 export enum Capability {
-    A = 1,
-    B = 2,
-    C = 3,
-    D = 4,
-    E = 5,
-  }
-  
-  export type Location = {
-    latitude: number;
-    longitude: number;
-  };
-  
-  export enum EmergencyLevel {
-    "Immediate",
-    "Urgent",
-    "Non-Urgent",
-    "Routine",
-  }
-  
-  export type Emergency = {
-    capability: Capability[];
-    location: Location;
-    emergencyId: number;
-    emergencyLevel: EmergencyLevel;
-    offset: number;
-    requirements: number[];
-  };
-  
+  A = 1,
+  B = 2,
+  C = 3,
+  D = 4,
+  E = 5,
+}
+
+export type Location = {
+  latitude: number;
+  longitude: number;
+};
+
+export type EmergencyLevel = "Immediate" | "Urgent" | "Routine" | "Non-Urgent";
+
+export type Emergency = {
+  capability: Capability[];
+  location: Location;
+  emergencyId: number;
+  emergencyLevel: EmergencyLevel;
+  offset: number;
+  requirements: number[];
+};
 
 export type Resource = {
-  id: number,
-  capability: Capability,
-  origin_lat: number,
-  origin_lon: number,
-  destination_lat: number | null,
-  destination_lon: number | null,
+  id: number;
+  capability: Capability;
+  origin_lat: number;
+  origin_lon: number;
+  destination_lat: number | null;
+  destination_lon: number | null;
   route: Route | null;
   percent: number | null;
-}
+};
 
 export type JsonDataItem = {
   id: number;
@@ -61,23 +55,22 @@ export type JsonDataItem = {
   longitude: number;
 };
 
-
 export type Step = {
-  name: string,
-  duration: number,
-  distance: number,
-  driving_side: string,
-  weight: number,
-  mode: string,
-  geometry: Geometry
+  name: string;
+  duration: number;
+  distance: number;
+  driving_side: string;
+  weight: number;
+  mode: string;
+  geometry: Geometry;
 };
 
 export type Leg = {
-  weight: number,
-  duration: number,
-  steps: Step[],
-  distance: number,
-  summary: string
+  weight: number;
+  duration: number;
+  steps: Step[];
+  distance: number;
+  summary: string;
 };
 
 export type Route = {
@@ -91,14 +84,11 @@ export type Route = {
 
 export type LatLong = { lat: number; long: number };
 
-
-
 export type GeoJSON = {
   type: "Feature";
   properties: {};
   geometry: Geometry;
 };
-
 
 export interface Root {
   routes: RouteInterface[];

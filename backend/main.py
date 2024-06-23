@@ -45,11 +45,12 @@ app = FastAPI()
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=['*'],
+    allow_origins=["*"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
 
 @app.get("/")
 def root():
@@ -94,7 +95,7 @@ def optimise(params: OptimisationQuery):
 
     for i, car in enumerate(params.cars):
         for j, emergency in enumerate(params.emergencies):
-            #print(i, j, distance_data["rows"])
+            # print(i, j, distance_data["rows"])
 
             D[i][j] = distance_data["rows"][i]["elements"][j]["duration"]["value"]
 
