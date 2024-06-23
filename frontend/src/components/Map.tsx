@@ -393,7 +393,7 @@ const updateResources = async (
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   payload: any
 ): Promise<void> => {
-  const response = await fetch("http://seeking-a-route.fly.dev/optimise", {
+  const response = await fetch("https://seeking-a-route.fly.dev/optimise", {
     method: "POST",
     body: JSON.stringify(payload),
     headers: {
