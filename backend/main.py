@@ -79,6 +79,8 @@ def get_distance(origins, destinations):
 @app.post("/optimise/")
 def optimise(params: OptimisationQuery):
 
+    print(params.emergencies)
+
     num_vehicles = len(params.cars)
     num_incidents = len(params.emergencies)
 
@@ -92,12 +94,16 @@ def optimise(params: OptimisationQuery):
         [(emergency.lat, emergency.lon) for emergency in params.emergencies],
     )
 
+    print(distance_data)
+
     for i, car in enumerate(params.cars):
         for j, emergency in enumerate(params.emergencies):
+            #print(i, j, distance_data["rows"])
+
             D[i][j] = distance_data["rows"][i]["elements"][j]["duration"]["value"]
 
     for i, car in enumerate(params.cars):
-        vehicle_types[i][car.capability] = 1
+        vehicle_types[i][car.capability - 1] = 1
 
     for i, emergency in enumerate(params.emergencies):
         priorities.append(emergency.priority)

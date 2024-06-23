@@ -14,6 +14,8 @@ import {
   Geometry,
   JsonDataItem,
   Destination,
+  Leg,
+  Step,
 } from "../types/types.ts";
 import jsonData from "../data/capabilities.json";
 import { useRef, useEffect, useState } from "react";
@@ -73,8 +75,14 @@ const getRoute = async (start: LatLong, end: LatLong): Promise<Route> => {
     geometry: route.geometry,
   };
 
+  const length = route.distance;
+
+  const legs = route.legs;
+
   return {
     geojson,
+    length,
+    legs,
     start,
     end,
     id: `${start.lat}-${start.long}:${end.lat}-${end.long}`,
@@ -89,6 +97,7 @@ const processJsonData = (jsonData: JsonDataItem[]): Resource[] => {
     destination_lat: null, // Set defaults for additional properties not in jsonData
     destination_lon: null,
     route: null,
+    percent: null,
     // Add similar lines for other additional properties
   }));
 };
@@ -160,12 +169,26 @@ const drawVehicle = (map: mapboxgl.Map, vehicle: Resource) => {
 
 const updateResources = async (
   resources: React.MutableRefObject<Resource[]>,
-  destinations: Destination[]
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  payload: any
 ): Promise<void> => {
+  const response = await fetch("http://127.0.0.1:8000/optimise", {
+    method: "POST",
+    body: JSON.stringify(payload),
+    headers: {
+      "Content-Type": "application/json",
+    },
+  });
+
+  const json = await response.json();
+
+  const { destinations } = json;
+
   const newResources = await Promise.all(
     resources.current.map(async (resource) => {
       const responseVehicle = destinations.find(
-        (destination) => resource.id === destination.car_id
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        (destination: any) => resource.id === destination.car_id
       );
 
       if (!responseVehicle) {
@@ -196,50 +219,24 @@ const updateResources = async (
       return {
         ...newVehicle,
         route: newRoute,
+        percent: 0,
       };
     })
   );
 
-  console.log({newResources})
-  resources.current = newResources
-//   setResources(newResources);
+  resources.current = newResources;
 };
 
 const Map = () => {
   mapboxgl.accessToken = MAPBOX_KEY;
   const mapContainer = useRef<HTMLDivElement>(null);
   const map = useRef<mapboxgl.Map | null>(null);
-  const [routes, setRoutes] = useState<Route[]>([]);
   const [time, setTime] = useState(0);
 
-  const resources = useRef<Resource[]>( resourcesJson);
+  const [renderTick, setRenderTick] = useState(0);
 
-  const emergencies: Emergency[] = [
-    {
-      capability: [Capability.A],
-      location: { latitude: -32, longitude: 115.9 },
-      emergencyId: 1,
-      emergencyLevel: EmergencyLevel.Immediate,
-      requirements: [1, 0, 0, 0, 0],
-      offset: 0,
-    },
-    {
-      capability: [Capability.C],
-      location: { latitude: -33, longitude: 115.9 },
-      emergencyId: 2,
-      emergencyLevel: EmergencyLevel.Urgent,
-      requirements: [0, 0, 1, 0, 0],
-      offset: 15000,
-    },
-    {
-      capability: [Capability.E],
-      location: { latitude: -31, longitude: 115.9 },
-      emergencyId: 3,
-      requirements: [0, 0, 0, 0, 1],
-      emergencyLevel: EmergencyLevel["Non-Urgent"],
-      offset: 6000,
-    },
-  ];
+  const resources = useRef<Resource[]>(resourcesJson);
+
 
   const initialiseMap = () => {
     if (map.current || !mapContainer.current) return; // initialize map only once
@@ -272,16 +269,121 @@ const Map = () => {
 
   const setTimer = () => {
     const interval = setInterval(() => {
-      setTime((prevTime) => prevTime + 3000); // Increment time every 500ms
+      setTime((prevTime) => prevTime + 3000); // Increment time every 3000ms
     }, 3000);
     return interval;
   };
+
+  const setRenderTimer = () => {
+    const interval = setInterval(() => {
+      setRenderTick((prevTime) => prevTime + 2000); // Increment time every 2000ms
+    }, 200);
+    return interval;
+  };
+
+  useEffect(() => {
+    const newResources = resources.current.map((vehicle) => {
+      // 1. How far along the path are we currently?
+      // a. How long is route in total
+      if (!vehicle.route) return vehicle;
+
+      const totalLength = vehicle.route?.length;
+
+      // b. How far along are we? (percent)
+      if (typeof vehicle.percent !== "number") return vehicle;
+      const currentPercent = vehicle.percent;
+      const currentDistance = totalLength * currentPercent;
+
+      // c. Which leg are we in?
+      const legs = vehicle.route.legs;
+      const { currentLeg } = legs.reduce<{
+        currentLeg: null | Leg;
+        currentDistance: number;
+      }>(
+        (acc, leg) => {
+          if (acc.currentLeg) {
+            return acc;
+          }
+          acc.currentDistance += leg.distance;
+          if (acc.currentDistance >= currentDistance) {
+            acc.currentLeg = leg;
+          }
+          return acc;
+        },
+        { currentDistance: 0, currentLeg: null }
+      );
+
+      if (currentLeg === null) {
+        return vehicle;
+      }
+
+
+      // d. What step within this leg are we?
+      const steps = currentLeg.steps;
+      
+      const { currentStep, currentDistance: currentStepDistance } = steps.reduce<{
+        currentStep: null | Step;
+        currentDistance: number;
+      }>(
+        (acc, step) => {
+          if (acc.currentStep) {
+            return acc;
+          }
+          acc.currentDistance += step.distance;
+          if (acc.currentDistance >= currentDistance) {
+            acc.currentStep = step;
+          }
+          return acc;
+        },
+        { currentDistance: currentLeg.distance, currentStep: null }
+      );
+
+      if (currentStep === null) {
+        return vehicle;
+      }
+
+      const currentStepStart = currentDistance - currentStepDistance;
+      
+
+      // e. What percent of the way through this step are we?
+      const distanceThroughStep = currentDistance - currentStepStart;
+
+      console.log
+
+      const stepCompletion = distanceThroughStep / currentStep.distance;
+      
+
+      const indx = Math.round((currentStep.geometry.coordinates.length - 1) * stepCompletion);
+
+      console.log({ distanceThroughStep, stepCompletion, swag: currentStep.geometry.coordinates, yolo: indx })
+
+      const stepCoordinate = currentStep.geometry.coordinates[Math.round((currentStep.geometry.coordinates.length - 1) * stepCompletion)]
+
+      vehicle.origin_lat = stepCoordinate[1];
+      vehicle.origin_lon = stepCoordinate[0];
+
+      console.log('SDFSDFSDFSDF');
+
+      vehicle.percent += 0.1;
+      return vehicle;
+    }) ?? [];
+
+    console.log(newResources);
+
+    resources.current = newResources;
+  }, [time]);
 
   useEffect(() => {
     initialiseMap();
 
     const interval = setTimer();
-    return () => clearInterval(interval);
+    // const renderInterval = setRenderTimer();
+    
+    return () => {
+      clearInterval(interval);
+      // clearInterval(renderInterval);
+    };
+
   }, []);
 
   useEffect(() => {
@@ -315,71 +417,7 @@ const Map = () => {
       emergencies: formattedEmergencies,
     };
 
-    console.log({payload, time});
-
-    // fetch("https://seeking-a-route.fly.dev/optimise/", {
-    //   body: JSON.stringify(payload),
-    //   method: "POST",
-    //   headers: {
-    //     "Content-Type": "application/json",
-    //   },
-    // })
-    //   .then((res) => {
-    //     console.log(res);
-    //   })
-    //   .catch((error) => {
-    //     console.error("Error:", error);
-    //   });
-
-    const res = {
-      destinations: [
-        {
-          car_id: 0,
-          emergency_id: 0,
-          car_lat: -32.411052,
-          car_lon: 116.411444,
-          emergency_lat: -32.111052,
-          emergency_lon: 116.011444,
-          time_seconds: 1995.0,
-        },
-        {
-          car_id: 2,
-          emergency_id: 0,
-          car_lat: -32.411052,
-          car_lon: 116.411444,
-          emergency_lat: -32.111052,
-          emergency_lon: 116.011444,
-          time_seconds: 1652.0,
-        },
-        {
-          car_id: 6,
-          emergency_id: 1,
-          car_lat: -32.411052,
-          car_lon: 116.411444,
-
-          emergency_lat: -31.983119,
-          emergency_lon: 115.781367,
-          time_seconds: 775.0,
-        },
-        {
-          car_id: 1,
-
-          emergency_id: 2,
-          car_lat: -32.411052,
-          car_lon: 116.411444,
-          emergency_lat: -31.914221,
-          emergency_lon: 115.828848,
-          time_seconds: 569.0,
-        },
-      ],
-      value: 4991.0,
-    };
-
-    updateResources(resources,  res.destinations);
-
-    console.log("Received optimization data:", resources);
-
-    // update resources
+    updateResources(resources, payload);
 
     emergencies.forEach((emergency) => {
       if (time === emergency.offset && map.current) {
@@ -393,29 +431,18 @@ const Map = () => {
     });
   }, [time, emergencies]);
 
-  routes.forEach((route) => {
-    map.current && drawLine(route, map.current);
+  resources.current.forEach((eddie) => {
+    map.current && eddie.route && drawLine(eddie.route, map.current);
   });
 
   resources.current.forEach((vehicle) => {
     map.current && drawVehicle(map.current, vehicle);
   });
 
-  console.log('rendering')
+  console.log("rendering");
 
   return (
     <>
-      <button
-        onClick={async () => {
-          if (!map.current) {
-            return;
-          }
-          const route = await getRoute(START_POSITION, END_POSITION);
-          setRoutes([route]);
-        }}
-      >
-        Click me
-      </button>
       <div
         ref={mapContainer}
         className="map-container"

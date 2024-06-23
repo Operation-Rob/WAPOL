@@ -51,6 +51,7 @@ export type Resource = {
   destination_lat: number | null,
   destination_lon: number | null,
   route: Route | null;
+  percent: number | null;
 }
 
 export type JsonDataItem = {
@@ -60,11 +61,32 @@ export type JsonDataItem = {
   longitude: number;
 };
 
+
+export type Step = {
+  name: string,
+  duration: number,
+  distance: number,
+  driving_side: string,
+  weight: number,
+  mode: string,
+  geometry: Geometry
+};
+
+export type Leg = {
+  weight: number,
+  duration: number,
+  steps: Step[],
+  distance: number,
+  summary: string
+};
+
 export type Route = {
   start: LatLong;
   end: LatLong;
   geojson: GeoJSON;
   id: string;
+  length: number;
+  legs: Leg[];
 };
 
 export type LatLong = { lat: number; long: number };
@@ -94,33 +116,9 @@ export interface RouteInterface {
   geometry: Geometry2;
 }
 
-export interface Leg {
-  via_waypoints: any[];
-  admins: Admin[];
-  weight: number;
-  duration: number;
-  steps: Step[];
-  distance: number;
-  summary: string;
-}
-
 export interface Admin {
   iso_3166_1_alpha3: string;
   iso_3166_1: string;
-}
-
-export interface Step {
-  intersections: Intersection[];
-  maneuver: Maneuver;
-  name: string;
-  duration: number;
-  distance: number;
-  driving_side: string;
-  weight: number;
-  mode: string;
-  geometry: Geometry;
-  ref?: string;
-  destinations?: string;
 }
 
 export interface Intersection {

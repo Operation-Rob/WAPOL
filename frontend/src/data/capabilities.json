@@ -47,31 +47,5 @@
     "longitude": 115.805284,
     "latitude": -31.884016
   },
-  { "id": 24, "capability": 2, "longitude": 115.7629, "latitude": -31.8968 },
-  {
-    "id": 25,
-    "capability": 3,
-    "longitude": 115.803571,
-    "latitude": -31.875972
-  },
-  {
-    "id": 26,
-    "capability": 3,
-    "longitude": 115.813432,
-    "latitude": -31.876094
-  },
-  { "id": 27, "capability": 4, "longitude": 115.7629, "latitude": -31.8968 },
-  {
-    "id": 28,
-    "capability": 4,
-    "longitude": 115.803571,
-    "latitude": -31.875972
-  },
-  {
-    "id": 29,
-    "capability": 5,
-    "longitude": 115.815489,
-    "latitude": -31.877032
-  },
-  { "id": 30, "capability": 5, "longitude": 115.803571, "latitude": -31.875972 }
+  { "id": 24, "capability": 2, "longitude": 115.7629, "latitude": -31.8968 }
 ]
