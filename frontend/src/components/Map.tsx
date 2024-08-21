@@ -2,6 +2,7 @@ import mapboxgl from "mapbox-gl";
 import "mapbox-gl/dist/mapbox-gl.css";
 import "./Map.css";
 
+
 import {
   Capability,
   EmergencyLevel,
@@ -393,7 +394,7 @@ const updateResources = async (
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   payload: any
 ): Promise<void> => {
-  const response = await fetch("https://seeking-a-route.fly.dev/optimise", {
+  const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/optimise`, {
     method: "POST",
     body: JSON.stringify(payload),
     headers: {
